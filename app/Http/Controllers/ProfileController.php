@@ -7,7 +7,9 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -68,12 +70,12 @@ class ProfileController extends Controller
     {
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+            'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        $request->user()->update([
-            'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
-        ]);
+        $user = $request->user();
+        $user->password = Hash::make($validated['password']);
+        $user->save();
 
         return Redirect::route('profile.edit');
     }
