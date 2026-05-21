@@ -187,6 +187,15 @@ const printDate = computed(() => {
         minute: '2-digit'
     });
 });
+
+const getExportUrl = () => {
+    const params = new URLSearchParams();
+    if (formFilters.value.date) params.append('date', formFilters.value.date);
+    if (formFilters.value.month) params.append('month', formFilters.value.month);
+    if (formFilters.value.year) params.append('year', formFilters.value.year);
+    params.append('export', 'csv');
+    return `/reports/sales?${params.toString()}`;
+};
 </script>
 
 <template>
@@ -235,15 +244,26 @@ const printDate = computed(() => {
                     </select>
                 </div>
                 <div class="flex flex-col justify-end">
-                    <button 
-                        @click="printReport" 
-                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 h-[38px]"
-                    >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                        </svg>
-                        Cetak
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button 
+                            @click="printReport" 
+                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 h-[38px] cursor-pointer"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            Cetak PDF
+                        </button>
+                        <a 
+                            :href="getExportUrl()" 
+                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 h-[38px] cursor-pointer"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Export Excel/CSV
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -307,9 +327,15 @@ const printDate = computed(() => {
                                     <span class="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tighter">{{ trx.kode_transaksi }}</span>
                                 </td>
                                 <td class="px-8 py-5">
-                                    <p class="text-xs text-slate-600 dark:text-slate-300 font-bold capitalize truncate max-w-xs">
-                                        {{ trx.details ? trx.details.map(d => d.produk?.nama_produk).filter(Boolean).join(', ') : '' }}
-                                    </p>
+                                    <div class="space-y-1">
+                                        <div v-for="d in trx.details" :key="d.id" class="text-xs font-semibold">
+                                            <span class="text-slate-900 dark:text-white">{{ d.produk?.nama_produk || d.kode_produk }}</span>
+                                            <span class="text-slate-400 dark:text-slate-500 text-[10px] ml-1.5 font-medium">
+                                                ({{ d.produk?.ukuran || '-' }} / {{ d.produk?.warna || '-' }})
+                                            </span>
+                                            <span class="text-slate-500 dark:text-slate-400 ml-2">x{{ d.jumlah }}</span>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="px-8 py-5 font-black text-blue-600 dark:text-blue-400 text-sm tracking-tighter">{{ formatPrice(trx.total_harga) }}</td>
                                 <td class="px-8 py-5">

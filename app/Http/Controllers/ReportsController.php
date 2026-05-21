@@ -18,6 +18,91 @@ class ReportsController extends Controller
         $month = $request->input('month', date('n'));
         $year = $request->input('year', date('Y'));
 
+        if ($request->input('export') === 'csv') {
+            $transactions = Transaksi::with(['user', 'details.produk'])
+                ->where('status', 'selesai')
+                ->when($date, function($q) use ($date) {
+                    return $q->whereDate('tanggal', $date);
+                })
+                ->when(!$date, function($q) use ($month, $year) {
+                    return $q->whereMonth('tanggal', $month)->whereYear('tanggal', $year);
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $filename = 'Laporan_Penjualan_' . ($date ?: $month . '-' . $year) . '.csv';
+            $headers = [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Pragma' => 'no-cache',
+                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+                'Expires' => '0'
+            ];
+
+            $callback = function() use ($transactions) {
+                $file = fopen('php://output', 'w');
+                // UTF-8 BOM signature for Microsoft Excel compatibility
+                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+                fputcsv($file, [
+                    'Tanggal & Waktu',
+                    'Kode Transaksi',
+                    'Nama Produk',
+                    'Ukuran',
+                    'Warna',
+                    'Jumlah Qty',
+                    'Harga Satuan',
+                    'Subtotal Item',
+                    'Total Transaksi',
+                    'Metode Pembayaran',
+                    'Kasir'
+                ]);
+
+                foreach ($transactions as $trx) {
+                    $time = Carbon::parse($trx->created_at)->format('Y-m-d H:i:s');
+                    $code = $trx->kode_transaksi;
+                    $total = $trx->total_harga;
+                    $method = $trx->metode_bayar;
+                    $cashier = $trx->user ? $trx->user->name : 'Sistem';
+
+                    if ($trx->details->isNotEmpty()) {
+                        foreach ($trx->details as $d) {
+                            fputcsv($file, [
+                                $time,
+                                $code,
+                                $d->produk ? $d->produk->nama_produk : $d->kode_produk,
+                                $d->produk ? $d->produk->ukuran : '-',
+                                $d->produk ? $d->produk->warna : '-',
+                                $d->jumlah,
+                                $d->harga_satuan,
+                                $d->subtotal,
+                                $total,
+                                $method,
+                                $cashier
+                            ]);
+                        }
+                    } else {
+                        fputcsv($file, [
+                            $time,
+                            $code,
+                            '-',
+                            '-',
+                            '-',
+                            0,
+                            0,
+                            0,
+                            $total,
+                            $method,
+                            $cashier
+                        ]);
+                    }
+                }
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        }
+
         $query = Transaksi::where('status', 'selesai');
 
         if ($date) {
