@@ -62,15 +62,52 @@ class StockController extends Controller
             // Send Notifications to all users
             try {
                 $users = \App\Models\User::all();
-                $stockTitle = 'Penyesuaian Stok';
-                $stockMsg = "Stok {$product->nama_produk} telah " . ($request->jenis_aktivitas === 'masuk' ? 'ditambah +' : 'dikurangi -') . "{$request->jumlah} (Sisa: {$product->stok}) oleh {$request->user()->name}.";
+                
+                // Calculate SMA for this product (last 3 weeks)
+                $now = now();
+                $w1_start = $now->copy()->subDays(7);
+                $w2_start = $now->copy()->subDays(14);
+                $w3_start = $now->copy()->subDays(21);
+
+                $sales = \App\Models\DetailTransaksi::join('transaksi', 'detail_transaksi.transaksi_id', '=', 'transaksi.id')
+                    ->where('transaksi.status', 'selesai')
+                    ->where('detail_transaksi.kode_produk', $product->kode_produk)
+                    ->where('transaksi.tanggal', '>=', $w3_start)
+                    ->selectRaw('SUM(CASE WHEN transaksi.tanggal >= ? THEN detail_transaksi.jumlah ELSE 0 END) as sales_w1', [$w1_start])
+                    ->selectRaw('SUM(CASE WHEN transaksi.tanggal >= ? AND transaksi.tanggal < ? THEN detail_transaksi.jumlah ELSE 0 END) as sales_w2', [$w2_start, $w1_start])
+                    ->selectRaw('SUM(CASE WHEN transaksi.tanggal >= ? AND transaksi.tanggal < ? THEN detail_transaksi.jumlah ELSE 0 END) as sales_w3', [$w3_start, $w2_start])
+                    ->first();
+
+                $w1 = $sales ? (int)$sales->sales_w1 : 0;
+                $w2 = $sales ? (int)$sales->sales_w2 : 0;
+                $w3 = $sales ? (int)$sales->sales_w3 : 0;
+                $sma = (int) ceil(($w1 + $w2 + $w3) / 3);
+
+                $targetStock = max($product->stok_minimal, $sma);
+
+                if ($product->stok <= $product->stok_minimal) {
+                    $stockTitle = 'Stok Kritis';
+                    $rekomendasi_tambah = max(0, $targetStock - $product->stok);
+                    $stockMsg = "Stok {$product->nama_produk} sangat rendah (Sisa: {$product->stok}). Disarankan restok segera +{$rekomendasi_tambah} unit.";
+                } elseif ($product->stok < $sma) {
+                    $stockTitle = 'Rekomendasi Restok (SMA)';
+                    $rekomendasi_tambah = max(0, $targetStock - $product->stok);
+                    $stockMsg = "Stok {$product->nama_produk} ({$product->stok}) di bawah prediksi penjualan ({$sma} unit). Disarankan restok +{$rekomendasi_tambah} unit.";
+                } else {
+                    $stockTitle = 'Penyesuaian Stok';
+                    $stockMsg = "Stok {$product->nama_produk} telah " . ($request->jenis_aktivitas === 'masuk' ? 'ditambah +' : 'dikurangi -') . "{$request->jumlah} (Sisa: {$product->stok}) oleh {$request->user()->name}.";
+                }
                 
                 foreach ($users as $u) {
+                    $url = $u->role === 'owner' 
+                        ? (($product->stok < $targetStock) ? route('reports.stock-recommendations') : route('products.index'))
+                        : route('pos.index');
+
                     $u->notify(new \App\Notifications\SystemNotification(
                         $stockTitle,
                         $stockMsg,
                         'stok',
-                        $u->role === 'owner' ? route('products.index') : route('pos.index')
+                        $url
                     ));
                 }
             } catch (\Exception $e) {

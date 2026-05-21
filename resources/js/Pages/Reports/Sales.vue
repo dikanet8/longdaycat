@@ -123,8 +123,10 @@ const chartOptions = {
                 font: { size: 11 }, 
                 beginAtZero: true,
                 callback: function(value) {
-                    if (value >= 1000000) {
-                        return 'Rp ' + (value / 1000000).toFixed(1) + 'M';
+                    if (value >= 1000000000) {
+                        return 'Rp ' + (value / 1000000000).toFixed(1) + ' M';
+                    } else if (value >= 1000000) {
+                        return 'Rp ' + (value / 1000000).toFixed(1) + ' Jt';
                     } else if (value >= 1000) {
                         return 'Rp ' + (value / 1000).toFixed(0) + 'K';
                     }
@@ -185,27 +187,22 @@ const formatDate = (date) => {
             <!-- Stats Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div v-for="stat in stats" :key="stat.name" 
-                    class="bg-white dark:bg-slate-900/40 backdrop-blur-md p-6 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group relative overflow-hidden shadow-sm border border-slate-200 dark:border-white/5 border-t-4"
-                    :class="{
-                        'border-t-emerald-500': stat.color.includes('emerald'),
-                        'border-t-blue-500': stat.color.includes('blue'),
-                        'border-t-amber-500': stat.color.includes('amber'),
-                        'border-t-purple-500': stat.color.includes('purple'),
-                    }"
+                    class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5 dark:bg-slate-900 dark:ring-white/10 flex flex-col justify-between"
                 >
-                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-slate-100 dark:bg-white/5 rounded-full blur-2xl group-hover:bg-blue-500/5 transition-all"></div>
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="p-3 bg-slate-50 dark:bg-slate-800 rounded-md group-hover:scale-110 transition-transform duration-500 shadow-inner" :class="stat.color">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">{{ stat.name }}</span>
+                        <div class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg" :class="stat.color">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="stat.icon" />
                             </svg>
                         </div>
-                        <span class="text-emerald-500 bg-emerald-500/10 text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">
+                    </div>
+                    <div class="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white mt-2 truncate">{{ stat.value }}</div>
+                    <div class="mt-2 flex items-center gap-1.5 text-xs font-semibold">
+                        <span class="text-emerald-600 dark:text-emerald-400">
                             {{ stat.change }}
                         </span>
                     </div>
-                    <p class="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">{{ stat.name }}</p>
-                    <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-2 truncate tracking-tighter capitalize">{{ stat.value }}</h3>
                 </div>
             </div>
 

@@ -40,6 +40,19 @@ const printReceipt = () => {
                 <h1 class="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Detail Transaksi</h1>
             </div>
 
+            <!-- Alert Sukses (di atas detail transaksi) -->
+            <div v-if="$page.props.flash.success || $page.props.flash.message" class="max-w-md mx-auto p-4 bg-emerald-50 dark:bg-emerald-950/10 border border-emerald-200 dark:border-emerald-900/30 border-l-4 border-l-emerald-500 rounded-xl text-emerald-800 dark:text-emerald-300 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black uppercase tracking-widest opacity-60">Sukses</p>
+                    <p class="text-xs font-bold leading-tight">{{ $page.props.flash.success || $page.props.flash.message }}</p>
+                </div>
+            </div>
+
             <div class="relative max-w-md mx-auto mt-6">
                 <!-- Left/Right Ticket Cutouts -->
                 <div class="absolute -left-4 top-[140px] w-8 h-8 bg-slate-50 dark:bg-slate-900 rounded-full shadow-inner z-10 hidden sm:block"></div>

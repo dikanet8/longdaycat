@@ -69,15 +69,26 @@ router.on('error', () => {
     isLoading.value = false;
 });
 
+let toastTimeout = null;
+
 const page = usePage();
 const flash = computed(() => page.props.flash);
 
 watch(flash, (newVal) => {
     const message = newVal?.message || newVal?.success || newVal?.error;
     if (message) {
-        toastMessage.value = message;
-        toastType.value = newVal?.error ? 'error' : 'success';
-        showToast.value = true;
+        if (page.component === 'Payments/Show' && (newVal?.success || newVal?.message) && !newVal?.error) {
+            // Do nothing, success alert is handled inline in Payments/Show.vue
+        } else {
+            toastMessage.value = message;
+            toastType.value = newVal?.error ? 'error' : 'success';
+            showToast.value = true;
+            
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                showToast.value = false;
+            }, 3000);
+        }
     }
 }, { deep: true, immediate: true });
 watch(() => page.url, () => {
@@ -87,6 +98,10 @@ watch(() => page.url, () => {
     isUserDropdownOpen.value = false;
     isNotificationsOpen.value = false;
     showToast.value = false;
+    if (toastTimeout) {
+        clearTimeout(toastTimeout);
+        toastTimeout = null;
+    }
 });
 
 const toggleTheme = () => {

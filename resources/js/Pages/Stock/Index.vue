@@ -17,7 +17,7 @@ watch(perPage, (value) => {
     router.get(route('stock.index'), { per_page: value }, { preserveState: true, replace: true });
 });
 
-const search = ref('');
+const search = ref(new URLSearchParams(window.location.search).get('search') || '');
 const showUpdateModal = ref(false);
 const selectedProduct = ref(null);
 const activeTab = ref('products'); // 'products' or 'history'
@@ -232,7 +232,6 @@ const resetHistoryFilters = () => {
                                 </div>
                             </div>
                         </div>
-                    </div>
                         <!-- Pagination & Per Page -->
                         <div class="px-6 py-4 border-t border-slate-100 dark:border-white/5 flex flex-col lg:flex-row items-center justify-between gap-6 bg-slate-50/30 dark:bg-white/[0.01]">
                             <div class="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 order-2 lg:order-1">
@@ -251,6 +250,7 @@ const resetHistoryFilters = () => {
                             </div>
                         </div>
                     </div>
+                </div>
 
                 <!-- Tab: Riwayat Perubahan -->
                 <div v-if="activeTab === 'history'" class="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
@@ -395,7 +395,6 @@ const resetHistoryFilters = () => {
                                 <p class="text-slate-500 dark:text-slate-400 text-sm font-medium italic">Tidak ada riwayat yang cocok.</p>
                             </div>
                         </div>
-                    </div>
                         <!-- Pagination & Per Page -->
                         <div class="px-6 py-4 border-t border-slate-100 dark:border-white/5 flex flex-col lg:flex-row items-center justify-between gap-6 bg-slate-50/30 dark:bg-white/[0.01]">
                             <div class="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 order-2 lg:order-1">
@@ -416,6 +415,7 @@ const resetHistoryFilters = () => {
                     </div>
                 </div>
             </div>
+        </div>
 
         <!-- Update Modal -->
         <Teleport to="body">
