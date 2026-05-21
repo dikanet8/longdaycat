@@ -36,10 +36,10 @@ const props = defineProps({
 });
 
 const formFilters = ref({
-    date: props.filters.date || '',
-    month: props.filters.month,
-    year: props.filters.year,
-    per_page: props.filters.per_page || 10
+    date: (props.filters && props.filters.date) ? props.filters.date : '',
+    month: props.filters ? props.filters.month : new Date().getMonth() + 1,
+    year: props.filters ? props.filters.year : new Date().getFullYear(),
+    per_page: (props.filters && props.filters.per_page) ? props.filters.per_page : 10
 });
 
 import { watch } from 'vue';
@@ -53,18 +53,18 @@ const months = [
 ];
 
 const formatPrice = (price) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price || 0);
 };
 
 const stats = computed(() => [
-    { name: 'Total Pendapatan', value: formatPrice(props.stats.total_pendapatan), change: '+0%', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'text-emerald-400' },
-    { name: 'Total Transaksi', value: props.stats.total_transaksi, change: '+0%', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', color: 'text-blue-400' },
-    { name: 'Produk Terlaris', value: props.stats.produk_terlaris, change: 'Top #1', icon: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z', color: 'text-amber-400' },
-    { name: 'Total Produk Terjual', value: props.stats.total_produk_terjual + ' pcs', change: '+0%', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', color: 'text-purple-400' },
+    { name: 'Total Pendapatan', value: formatPrice(props.stats?.total_pendapatan || 0), change: '+0%', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'text-emerald-400' },
+    { name: 'Total Transaksi', value: props.stats?.total_transaksi || 0, change: '+0%', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', color: 'text-blue-400' },
+    { name: 'Produk Terlaris', value: props.stats?.produk_terlaris || '-', change: 'Top #1', icon: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z', color: 'text-amber-400' },
+    { name: 'Total Produk Terjual', value: (props.stats?.total_produk_terjual || 0) + ' pcs', change: '+0%', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', color: 'text-purple-400' },
 ]);
 
 const chartData = computed(() => ({
-    labels: props.chart.labels,
+    labels: props.chart?.labels || [],
     datasets: [
         {
             label: 'Penjualan',
@@ -77,7 +77,7 @@ const chartData = computed(() => ({
             borderWidth: 3,
             fill: true,
             tension: 0.4,
-            data: props.chart.data
+            data: props.chart?.data || []
         }
     ]
 }));
@@ -91,17 +91,26 @@ const printReport = () => {
 };
 
 const getFilterPeriod = () => {
-    if (formFilters.value.date) {
-        return new Date(formFilters.value.date).toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        });
+    try {
+        if (formFilters.value.date) {
+            const d = new Date(formFilters.value.date);
+            if (!isNaN(d.getTime())) {
+                return d.toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+            }
+        }
+    } catch (e) {
+        console.error(e);
     }
-    if (formFilters.value.month && formFilters.value.year) {
-        return `${months[formFilters.value.month - 1]} ${formFilters.value.year}`;
+    
+    const monthIndex = parseInt(formFilters.value.month);
+    if (!isNaN(monthIndex) && monthIndex >= 1 && monthIndex <= 12 && formFilters.value.year) {
+        return `${months[monthIndex - 1]} ${formFilters.value.year}`;
     }
-    return `Tahun ${formFilters.value.year}`;
+    return `Tahun ${formFilters.value.year || new Date().getFullYear()}`;
 };
 
 const chartOptions = {
@@ -292,14 +301,14 @@ const printDate = computed(() => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-white/5">
-                            <tr v-for="trx in recent_transactions.data" :key="trx.id" class="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group">
+                            <tr v-for="trx in recent_transactions?.data || []" :key="trx.id" class="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group">
                                 <td class="px-8 py-5 text-xs text-slate-500 font-medium">{{ formatDate(trx.created_at) }}</td>
                                 <td class="px-8 py-5">
                                     <span class="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tighter">{{ trx.kode_transaksi }}</span>
                                 </td>
                                 <td class="px-8 py-5">
                                     <p class="text-xs text-slate-600 dark:text-slate-300 font-bold capitalize truncate max-w-xs">
-                                        {{ trx.details.map(d => d.produk?.nama_produk).join(', ') }}
+                                        {{ trx.details ? trx.details.map(d => d.produk?.nama_produk).filter(Boolean).join(', ') : '' }}
                                     </p>
                                 </td>
                                 <td class="px-8 py-5 font-black text-blue-600 dark:text-blue-400 text-sm tracking-tighter">{{ formatPrice(trx.total_harga) }}</td>
@@ -327,9 +336,9 @@ const printDate = computed(() => {
                     </div>
 
                     <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
-                        Menampilkan {{ recent_transactions.from }}-{{ recent_transactions.to }} dari {{ recent_transactions.total }}
+                        Menampilkan {{ recent_transactions?.from || 0 }}-{{ recent_transactions?.to || 0 }} dari {{ recent_transactions?.total || 0 }}
                     </p>
-                    <Pagination :links="recent_transactions.links" />
+                    <Pagination :links="recent_transactions?.links || []" />
                 </div>
             </div>
         </div>
