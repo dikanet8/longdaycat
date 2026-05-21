@@ -86,6 +86,24 @@ const applyFilter = () => {
     router.get('/reports/sales', formFilters.value, { preserveState: true });
 };
 
+const printReport = () => {
+    window.print();
+};
+
+const getFilterPeriod = () => {
+    if (formFilters.value.date) {
+        return new Date(formFilters.value.date).toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    }
+    if (formFilters.value.month && formFilters.value.year) {
+        return `${months[formFilters.value.month - 1]} ${formFilters.value.year}`;
+    }
+    return `Tahun ${formFilters.value.year}`;
+};
+
 const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -157,8 +175,22 @@ const formatDate = (date) => {
 
     <AppLayout>
         <div class="space-y-8">
+            <!-- Print Only Header -->
+            <div class="hidden print:block mb-6 border-b-2 border-slate-900 pb-4">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900">Longdaycat.Co</h1>
+                        <p class="text-xs text-slate-600 mt-1">Laporan Penjualan Terperinci</p>
+                    </div>
+                    <div class="text-right text-xs text-slate-600">
+                        <p class="font-semibold">Periode: {{ getFilterPeriod() }}</p>
+                        <p class="text-[10px] mt-1 text-slate-500">Dicetak pada: {{ new Date().toLocaleString('id-ID') }}</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Header & Filters -->
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 no-print">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Laporan Penjualan</h1>
                     <p class="text-slate-500 dark:text-slate-400 mt-1">Analisis performa penjualan produk Anda.</p>
@@ -180,6 +212,17 @@ const formatDate = (date) => {
                         <select v-model="formFilters.year" @change="applyFilter" class="bg-slate-50 dark:bg-white/5 border-none rounded-md text-xs text-slate-800 dark:text-white focus:ring-1 focus:ring-blue-500 w-24 py-2 px-3">
                             <option v-for="y in [2024, 2025, 2026]" :key="y" :value="y">{{ y }}</option>
                         </select>
+                    </div>
+                    <div class="flex flex-col justify-end h-full">
+                        <button 
+                            @click="printReport" 
+                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            Cetak
+                        </button>
                     </div>
                 </div>
             </div>
@@ -207,7 +250,7 @@ const formatDate = (date) => {
             </div>
 
             <!-- Chart -->
-            <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md border border-slate-200 dark:border-white/5 rounded-md overflow-hidden shadow-sm border-t-4 border-t-blue-600">
+            <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md border border-slate-200 dark:border-white/5 rounded-md overflow-hidden shadow-sm border-t-4 border-t-blue-600 no-print">
                 <div class="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
                     <div>
                         <h3 class="font-bold text-lg text-slate-900 dark:text-white">Trend Penjualan</h3>
@@ -234,7 +277,7 @@ const formatDate = (date) => {
                                 <th class="px-8 py-5">Total</th>
                                 <th class="px-8 py-5">Metode</th>
                                 <th class="px-8 py-5">Kasir</th>
-                                <th class="px-8 py-5 text-right">Aksi</th>
+                                <th class="px-8 py-5 text-right no-print">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-white/5">
@@ -255,7 +298,7 @@ const formatDate = (date) => {
                                 <td class="px-8 py-5">
                                     <span class="text-xs font-bold text-slate-700 dark:text-slate-300 capitalize">{{ trx.user?.name || 'Sistem' }}</span>
                                 </td>
-                                <td class="px-8 py-5 text-right">
+                                <td class="px-8 py-5 text-right no-print">
                                     <Link :href="`/payments/${trx.id}`" class="text-blue-600 font-black text-[10px] uppercase hover:underline">Detail</Link>
                                 </td>
                             </tr>
@@ -263,7 +306,7 @@ const formatDate = (date) => {
                     </table>
                 </div>
                 <!-- Pagination -->
-                <div class="px-8 py-5 border-t border-slate-100 dark:border-white/5 flex items-center justify-end gap-6 bg-slate-50/50 dark:bg-white/[0.02]">
+                <div class="px-8 py-5 border-t border-slate-100 dark:border-white/5 flex items-center justify-end gap-6 bg-slate-50/50 dark:bg-white/[0.02] no-print">
                     <!-- Per Page Selector -->
                     <div class="flex items-center gap-2 mr-auto">
                         <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Baris:</span>
@@ -281,3 +324,75 @@ const formatDate = (date) => {
         </div>
     </AppLayout>
 </template>
+
+<style>
+@media print {
+    /* Reset heights and layout scrolling for proper multi-page printing */
+    html, body, #app, main, .h-\[100dvh\], .flex-1, .space-y-8 {
+        height: auto !important;
+        overflow: visible !important;
+        position: static !important;
+        background-color: white !important;
+        color: black !important;
+        background: none !important;
+    }
+
+    /* Hide layout chrome and non-print items */
+    aside, 
+    header, 
+    nav, 
+    .no-print, 
+    button, 
+    a, 
+    select {
+        display: none !important;
+    }
+
+    /* Full-width print space */
+    main {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Print friendly grid/containers */
+    .grid {
+        display: grid !important;
+        grid-template-cols: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+    }
+    
+    .grid > div {
+        border: 1px solid #e2e8f0 !important;
+        padding: 1rem !important;
+        border-radius: 0.5rem !important;
+        background: white !important;
+        box-shadow: none !important;
+        color: black !important;
+    }
+
+    /* Table printing optimizations */
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-top: 1.5rem !important;
+    }
+    
+    th, td {
+        border-bottom: 1px solid #cbd5e1 !important;
+        padding: 10px 12px !important;
+        font-size: 11px !important;
+        color: black !important;
+    }
+
+    th {
+        font-weight: bold !important;
+        background-color: #f1f5f9 !important;
+    }
+
+    tr {
+        page-break-inside: avoid !important;
+    }
+}
+</style>
