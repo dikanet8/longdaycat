@@ -193,21 +193,21 @@ const printDate = computed(() => {
     <Head title="Laporan Penjualan" />
 
     <AppLayout>
-        <div class="space-y-8">
-            <!-- Print Only Header -->
-            <div class="hidden print:block mb-6 border-b-2 border-slate-900 pb-4">
-                <div class="flex justify-between items-end">
-                    <div>
-                        <h1 class="text-2xl font-bold text-slate-900">Longdaycat.Co</h1>
-                        <p class="text-xs text-slate-600 mt-1">Laporan Penjualan Terperinci</p>
-                    </div>
-                    <div class="text-right text-xs text-slate-600">
-                        <p class="font-semibold">Periode: {{ getFilterPeriod() }}</p>
-                        <p class="text-[10px] mt-1 text-slate-500">Dicetak pada: {{ printDate }}</p>
-                    </div>
+        <!-- Print Only Header -->
+        <div class="hidden print:block mb-6 border-b-2 border-slate-900 pb-4">
+            <div class="flex justify-between items-end">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Longdaycat.Co</h1>
+                    <p class="text-xs text-slate-600 mt-1">Laporan Penjualan Terperinci</p>
+                </div>
+                <div class="text-right text-xs text-slate-600">
+                    <p class="font-semibold">Periode: {{ getFilterPeriod() }}</p>
+                    <p class="text-[10px] mt-1 text-slate-500">Dicetak pada: {{ printDate }}</p>
                 </div>
             </div>
+        </div>
 
+        <div class="space-y-8">
             <!-- Header Section -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
                 <div>
