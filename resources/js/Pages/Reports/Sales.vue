@@ -358,10 +358,18 @@ const printDate = computed(() => {
 <style>
 @media print {
     /* Reset heights and layout scrolling for proper multi-page printing */
-    html, body, #app, main, .h-\[100dvh\], .flex-1, .space-y-8 {
+    html, 
+    body, 
+    #app, 
+    #app > div, 
+    #app > div > div, 
+    main {
         height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
         overflow: visible !important;
         position: static !important;
+        display: block !important;
         background-color: white !important;
         color: black !important;
         background: none !important;
