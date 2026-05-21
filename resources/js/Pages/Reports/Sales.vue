@@ -189,41 +189,42 @@ const formatDate = (date) => {
                 </div>
             </div>
 
-            <!-- Header & Filters -->
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 no-print">
+            <!-- Header Section -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Laporan Penjualan</h1>
-                    <p class="text-slate-500 dark:text-slate-400 mt-1">Analisis performa penjualan produk Anda.</p>
+                    <p class="text-slate-500 dark:text-slate-400 mt-1 font-medium text-xs md:text-sm">Analisis performa penjualan produk Anda.</p>
                 </div>
-                
-                <div class="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-900/50 p-2 rounded-md backdrop-blur-sm shadow-sm border border-slate-200 dark:border-white/5">
-                    <div class="flex flex-col">
-                        <label class="text-[10px] uppercase tracking-wider text-slate-500 font-bold ml-2 mb-1">Tanggal</label>
-                        <input type="date" v-model="formFilters.date" @change="applyFilter" class="bg-slate-50 dark:bg-white/5 border-none rounded-md text-xs text-slate-800 dark:text-white focus:ring-1 focus:ring-blue-500 w-36 py-2 px-3" />
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="text-[10px] uppercase tracking-wider text-slate-500 font-bold ml-2 mb-1">Bulan</label>
-                        <select v-model="formFilters.month" @change="applyFilter" class="bg-slate-50 dark:bg-white/5 border-none rounded-md text-xs text-slate-800 dark:text-white focus:ring-1 focus:ring-blue-500 w-32 py-2 px-3">
-                            <option v-for="(m, i) in months" :key="m" :value="i+1">{{ m }}</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="text-[10px] uppercase tracking-wider text-slate-500 font-bold ml-2 mb-1">Tahun</label>
-                        <select v-model="formFilters.year" @change="applyFilter" class="bg-slate-50 dark:bg-white/5 border-none rounded-md text-xs text-slate-800 dark:text-white focus:ring-1 focus:ring-blue-500 w-24 py-2 px-3">
-                            <option v-for="y in [2024, 2025, 2026]" :key="y" :value="y">{{ y }}</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col justify-end h-full">
-                        <button 
-                            @click="printReport" 
-                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                            </svg>
-                            Cetak
-                        </button>
-                    </div>
+            </div>
+
+            <!-- Filters Bar (Above Cards, Borderless) -->
+            <div class="flex flex-wrap items-end gap-3 no-print">
+                <div class="flex flex-col">
+                    <label class="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold ml-1 mb-1.5">Tanggal</label>
+                    <input type="date" v-model="formFilters.date" @change="applyFilter" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-36 py-2.5 px-3.5 shadow-sm" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold ml-1 mb-1.5">Bulan</label>
+                    <select v-model="formFilters.month" @change="applyFilter" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-32 py-2.5 px-3.5 shadow-sm cursor-pointer">
+                        <option v-for="(m, i) in months" :key="m" :value="i+1">{{ m }}</option>
+                    </select>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold ml-1 mb-1.5">Tahun</label>
+                    <select v-model="formFilters.year" @change="applyFilter" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-24 py-2.5 px-3.5 shadow-sm cursor-pointer">
+                        <option v-for="y in [2024, 2025, 2026]" :key="y" :value="y">{{ y }}</option>
+                    </select>
+                </div>
+                <div class="flex flex-col justify-end">
+                    <button 
+                        @click="printReport" 
+                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 h-[38px]"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Cetak
+                    </button>
                 </div>
             </div>
 
