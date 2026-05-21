@@ -168,6 +168,16 @@ const formatDate = (date) => {
         minute: '2-digit'
     });
 };
+
+const printDate = computed(() => {
+    return new Date().toLocaleString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+});
 </script>
 
 <template>
@@ -184,7 +194,7 @@ const formatDate = (date) => {
                     </div>
                     <div class="text-right text-xs text-slate-600">
                         <p class="font-semibold">Periode: {{ getFilterPeriod() }}</p>
-                        <p class="text-[10px] mt-1 text-slate-500">Dicetak pada: {{ new Date().toLocaleString('id-ID') }}</p>
+                        <p class="text-[10px] mt-1 text-slate-500">Dicetak pada: {{ printDate }}</p>
                     </div>
                 </div>
             </div>
@@ -360,7 +370,7 @@ const formatDate = (date) => {
     /* Print friendly grid/containers */
     .grid {
         display: grid !important;
-        grid-template-cols: repeat(4, minmax(0, 1fr)) !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
         gap: 1rem !important;
     }
     
