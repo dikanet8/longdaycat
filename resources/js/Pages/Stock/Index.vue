@@ -131,7 +131,7 @@ const resetHistoryFilters = () => {
                 <!-- Tab: Kelola Produk -->
                 <div v-if="activeTab === 'products'" class="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
                     <!-- Filter Section (Synced) -->
-                    <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md p-3 md:p-2.5 rounded-3xl md:rounded-md border border-slate-200 dark:border-white/5 shadow-sm">
+                    <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md p-3 md:p-2.5 rounded-md border border-slate-200 dark:border-white/5 shadow-sm">
                         <div class="flex items-center gap-2.5">
                             <div class="relative w-full md:w-64">
                                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -143,12 +143,12 @@ const resetHistoryFilters = () => {
                                     v-model="search"
                                     type="text" 
                                     placeholder="Cari produk..." 
-                                    class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl md:rounded-md py-2.5 md:py-2 pl-10 pr-3 text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all ring-1 ring-slate-200 dark:ring-white/10"
+                                    class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-md py-2.5 md:py-2 pl-10 pr-3 text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all ring-1 ring-slate-200 dark:ring-white/10"
                                 />
                             </div>
                             <button 
                                 @click="resetProductsFilter"
-                                class="p-2.5 bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-500 rounded-2xl md:rounded-md transition-all shadow-inner flex-shrink-0 group"
+                                class="p-2.5 bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-500 rounded-md transition-all shadow-inner flex-shrink-0 group"
                                 title="Reset Search"
                             >
                                 <svg class="w-4 h-4 transition-transform duration-500 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,7 +159,7 @@ const resetHistoryFilters = () => {
                     </div>
 
                     <!-- Main Table & Card Container -->
-                    <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md rounded-3xl md:rounded-md border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
+                    <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md rounded-md border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
                         <!-- Desktop Table -->
                         <div class="hidden md:block overflow-x-auto">
                             <table class="w-full text-left">
@@ -255,7 +255,7 @@ const resetHistoryFilters = () => {
                 <!-- Tab: Riwayat Perubahan -->
                 <div v-if="activeTab === 'history'" class="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
                     <!-- Filter Section (Synced) -->
-                    <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md p-3 md:p-2.5 rounded-3xl md:rounded-md border border-slate-200 dark:border-white/5 shadow-sm">
+                    <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md p-3 md:p-2.5 rounded-md border border-slate-200 dark:border-white/5 shadow-sm">
                         <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-2.5">
                             <!-- Search Field -->
                             <div class="relative w-full md:w-64">
@@ -268,7 +268,7 @@ const resetHistoryFilters = () => {
                                     v-model="historySearch"
                                     type="text" 
                                     placeholder="Cari produk/kode..." 
-                                    class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-2xl md:rounded-md py-2.5 md:py-2 pl-10 pr-3 text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all ring-1 ring-slate-200 dark:ring-white/10"
+                                    class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-md py-2.5 md:py-2 pl-10 pr-3 text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all ring-1 ring-slate-200 dark:ring-white/10"
                                 />
                             </div>
 
@@ -277,18 +277,18 @@ const resetHistoryFilters = () => {
                                 <input 
                                     v-model="historyDate"
                                     type="date" 
-                                    class="w-full md:w-40 bg-slate-50 dark:bg-white/5 border-none rounded-2xl md:rounded-md py-2.5 md:py-2 px-3 text-[11px] md:text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all ring-1 ring-slate-200 dark:ring-white/10"
+                                    class="w-full md:w-40 bg-slate-50 dark:bg-white/5 border-none rounded-md py-2.5 md:py-2 px-3 text-[11px] md:text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all ring-1 ring-slate-200 dark:ring-white/10"
                                 />
 
                                 <!-- Activity Filter -->
-                                <select v-model="historyActivity" class="w-full md:w-40 bg-slate-50 dark:bg-white/5 border-none rounded-2xl md:rounded-md py-2.5 md:py-2 px-3 text-[11px] md:text-xs font-bold text-slate-600 dark:text-slate-400 focus:ring-1 focus:ring-blue-500 transition-all cursor-pointer ring-1 ring-slate-200 dark:ring-white/10">
+                                <select v-model="historyActivity" class="w-full md:w-40 bg-slate-50 dark:bg-white/5 border-none rounded-md py-2.5 md:py-2 px-3 text-[11px] md:text-xs font-bold text-slate-600 dark:text-slate-400 focus:ring-1 focus:ring-blue-500 transition-all cursor-pointer ring-1 ring-slate-200 dark:ring-white/10">
                                     <option value="">Semua Aktivitas</option>
                                     <option value="masuk">Stok Masuk</option>
                                     <option value="keluar">Stok Keluar</option>
                                 </select>
 
                                 <!-- User Filter -->
-                                <select v-model="historyUser" class="w-full md:w-48 bg-slate-50 dark:bg-white/5 border-none rounded-2xl md:rounded-md py-2.5 md:py-2 px-3 text-[11px] md:text-xs font-bold text-slate-600 dark:text-slate-400 focus:ring-1 focus:ring-blue-500 transition-all cursor-pointer ring-1 ring-slate-200 dark:ring-white/10">
+                                <select v-model="historyUser" class="w-full md:w-48 bg-slate-50 dark:bg-white/5 border-none rounded-md py-2.5 md:py-2 px-3 text-[11px] md:text-xs font-bold text-slate-600 dark:text-slate-400 focus:ring-1 focus:ring-blue-500 transition-all cursor-pointer ring-1 ring-slate-200 dark:ring-white/10">
                                     <option value="">Semua Kasir</option>
                                     <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
                                 </select>
@@ -296,7 +296,7 @@ const resetHistoryFilters = () => {
                                 <!-- Reset Button -->
                                 <button 
                                     @click="resetHistoryFilters"
-                                    class="w-full md:w-auto p-2.5 bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-500 rounded-2xl md:rounded-md transition-all shadow-inner flex items-center justify-center flex-shrink-0 group"
+                                    class="w-full md:w-auto p-2.5 bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-blue-500 rounded-md transition-all shadow-inner flex items-center justify-center flex-shrink-0 group"
                                     title="Reset Filter"
                                 >
                                     <svg class="w-4 h-4 transition-transform duration-500 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,7 +308,7 @@ const resetHistoryFilters = () => {
                         </div>
                     </div>
 
-                    <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md rounded-3xl md:rounded-md border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
+                    <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md rounded-md border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
                         <!-- Desktop History Table -->
                         <div class="hidden md:block overflow-x-auto">
                             <table class="w-full text-left">
