@@ -226,42 +226,42 @@ const getExportUrl = () => {
             </div>
 
             <!-- Filters Bar (Above Cards, Borderless) -->
-            <div class="flex flex-wrap items-end gap-3 no-print">
-                <div class="flex flex-col">
+            <div class="grid grid-cols-2 md:flex md:flex-wrap items-end gap-3 no-print bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-white/5">
+                <div class="flex flex-col col-span-2 md:col-span-1">
                     <label class="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold ml-1 mb-1.5">Tanggal</label>
-                    <input type="date" v-model="formFilters.date" @change="applyFilter" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-36 py-2.5 px-3.5 shadow-sm" />
+                    <input type="date" v-model="formFilters.date" @change="applyFilter" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-36 py-2.5 px-3.5 shadow-sm" />
                 </div>
                 <div class="flex flex-col">
                     <label class="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold ml-1 mb-1.5">Bulan</label>
-                    <select v-model="formFilters.month" @change="applyFilter" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-32 py-2.5 px-3.5 shadow-sm cursor-pointer">
+                    <select v-model="formFilters.month" @change="applyFilter" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-32 py-2.5 px-3.5 shadow-sm cursor-pointer">
                         <option v-for="(m, i) in months" :key="m" :value="i+1">{{ m }}</option>
                     </select>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold ml-1 mb-1.5">Tahun</label>
-                    <select v-model="formFilters.year" @change="applyFilter" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-24 py-2.5 px-3.5 shadow-sm cursor-pointer">
+                    <select v-model="formFilters.year" @change="applyFilter" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-24 py-2.5 px-3.5 shadow-sm cursor-pointer">
                         <option v-for="y in [2024, 2025, 2026]" :key="y" :value="y">{{ y }}</option>
                     </select>
                 </div>
-                <div class="flex flex-col justify-end">
-                    <div class="flex items-center gap-2">
+                <div class="flex flex-col col-span-2 md:col-span-1 justify-end w-full md:w-auto mt-2 md:mt-0">
+                    <div class="flex items-center gap-2 w-full md:w-auto">
                         <button 
                             @click="printReport" 
-                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 h-[38px] cursor-pointer"
+                            class="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 h-[38px] cursor-pointer"
                         >
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
-                            Cetak PDF
+                            <span>PDF</span>
                         </button>
                         <a 
                             :href="getExportUrl()" 
-                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 h-[38px] cursor-pointer"
+                            class="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 h-[38px] cursor-pointer"
                         >
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
-                            Export Excel/CSV
+                            <span>Excel</span>
                         </a>
                     </div>
                 </div>
@@ -297,7 +297,7 @@ const getExportUrl = () => {
                         <p class="text-xs text-slate-500 font-medium">Visualisasi pendapatan dalam periode terpilih</p>
                     </div>
                 </div>
-                <div class="p-6 h-[400px]">
+                <div class="p-6 h-[300px] sm:h-[400px]">
                     <Line :data="chartData" :options="chartOptions" />
                 </div>
             </div>
@@ -307,7 +307,45 @@ const getExportUrl = () => {
                 <div class="p-6 border-b border-slate-100 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <h3 class="font-bold text-lg text-slate-900 dark:text-white">Daftar Transaksi Terperinci</h3>
                 </div>
-                <div class="overflow-x-auto">
+                <!-- Mobile Card List (Hidden on Desktop) -->
+                <div class="block md:hidden divide-y divide-slate-100 dark:divide-white/5">
+                    <div v-for="trx in recent_transactions?.data || []" :key="trx.id" class="p-5 space-y-3 hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">
+                        <div class="flex items-center justify-between">
+                            <span class="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tighter">{{ trx.kode_transaksi }}</span>
+                            <span class="text-[10px] text-slate-500 font-semibold">{{ formatDate(trx.created_at) }}</span>
+                        </div>
+
+                        <!-- Item Details -->
+                        <div class="space-y-1 bg-slate-50 dark:bg-white/5 p-3 rounded-lg">
+                            <div v-for="d in trx.details" :key="d.id" class="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                <span>{{ d.produk?.nama_produk || d.kode_produk }}</span>
+                                <span class="text-slate-400 dark:text-slate-500 text-[10px] ml-1.5 font-medium">
+                                    ({{ d.produk?.ukuran || '-' }} / {{ d.produk?.warna || '-' }})
+                                </span>
+                                <span class="text-slate-500 dark:text-slate-400 ml-2">x{{ d.jumlah }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Info & Action -->
+                        <div class="flex items-center justify-between pt-2">
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-slate-400 mr-2">Total:</span>
+                                <span class="font-black text-blue-600 dark:text-blue-400 text-sm tracking-tighter">{{ formatPrice(trx.total_harga) }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-[9px] font-black uppercase rounded text-slate-600 dark:text-slate-400">{{ trx.metode_bayar }}</span>
+                                <Link :href="`/payments/${trx.id}`" class="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-black text-[10px] uppercase rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50">Detail</Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="!recent_transactions?.data || recent_transactions.data.length === 0" class="p-8 text-center text-xs text-slate-400 font-bold uppercase tracking-wider">
+                        Tidak ada transaksi pada periode ini
+                    </div>
+                </div>
+
+                <!-- Desktop Table View (Hidden on Mobile) -->
+                <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-left">
                         <thead class="bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-400 text-[11px] uppercase tracking-widest font-black">
                             <tr>
@@ -361,20 +399,30 @@ const getExportUrl = () => {
                         </tbody>
                     </table>
                 </div>
-                <!-- Pagination -->
-                <div class="px-8 py-5 border-t border-slate-100 dark:border-white/5 flex items-center justify-end gap-6 bg-slate-50/50 dark:bg-white/[0.02] no-print">
+
+                <!-- Pagination (Responsive Grid/Flex) -->
+                <div class="px-6 py-5 border-t border-slate-100 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/50 dark:bg-white/[0.02] no-print">
                     <!-- Per Page Selector -->
-                    <div class="flex items-center gap-2 mr-auto">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Baris:</span>
-                        <select v-model="formFilters.per_page" class="bg-white dark:bg-slate-800 border-none rounded-md text-[11px] font-bold text-slate-700 dark:text-slate-300 ring-1 ring-slate-200 dark:ring-white/10 focus:ring-2 focus:ring-blue-500 py-1.5 pl-3 pr-8 w-16 cursor-pointer">
-                            <option v-for="n in [5, 10, 15, 20, 50]" :key="n" :value="n">{{ n }}</option>
-                        </select>
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Baris:</span>
+                            <select v-model="formFilters.per_page" class="bg-white dark:bg-slate-800 border-none rounded-md text-[11px] font-bold text-slate-700 dark:text-slate-300 ring-1 ring-slate-200 dark:ring-white/10 focus:ring-2 focus:ring-blue-500 py-1.5 pl-3 pr-8 w-16 cursor-pointer">
+                                <option v-for="n in [5, 10, 15, 20, 50]" :key="n" :value="n">{{ n }}</option>
+                            </select>
+                        </div>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider sm:hidden">
+                            Total: {{ recent_transactions?.total || 0 }}
+                        </span>
                     </div>
 
-                    <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
-                        Menampilkan {{ recent_transactions?.from || 0 }}-{{ recent_transactions?.to || 0 }} dari {{ recent_transactions?.total || 0 }}
-                    </p>
-                    <Pagination :links="recent_transactions?.links || []" />
+                    <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                        <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
+                            Menampilkan {{ recent_transactions?.from || 0 }}-{{ recent_transactions?.to || 0 }} dari {{ recent_transactions?.total || 0 }}
+                        </p>
+                        <div class="w-full sm:w-auto flex justify-center">
+                            <Pagination :links="recent_transactions?.links || []" />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
