@@ -26,9 +26,17 @@
 
             // Register Service Worker for PWA
             if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/sw.js');
-                });
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                        for (let registration of registrations) {
+                            registration.unregister();
+                        }
+                    });
+                } else {
+                    window.addEventListener('load', () => {
+                        navigator.serviceWorker.register('/sw.js');
+                    });
+                }
             }
         </script>
     </head>

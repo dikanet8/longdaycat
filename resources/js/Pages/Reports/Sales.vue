@@ -322,6 +322,16 @@ const printDate = computed(() => {
                                     <Link :href="`/payments/${trx.id}`" class="text-blue-600 font-black text-[10px] uppercase hover:underline">Detail</Link>
                                 </td>
                             </tr>
+                            <tr v-if="!recent_transactions?.data || recent_transactions.data.length === 0">
+                                <td colspan="7" class="px-8 py-12 text-center text-xs text-slate-400 font-bold uppercase tracking-wider bg-slate-50/10 dark:bg-white/[0.01]">
+                                    <div class="flex flex-col items-center justify-center space-y-2">
+                                        <svg class="w-8 h-8 text-slate-300 dark:text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                        <span>Tidak ada transaksi pada periode ini</span>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
