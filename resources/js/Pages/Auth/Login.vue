@@ -32,10 +32,10 @@ const submit = () => {
             <div class="space-y-8 my-auto max-w-lg">
                 <div class="space-y-4">
                     <h2 class="text-4xl font-black text-slate-900 leading-tight tracking-tight">
-                        Kelola Petshop Anda dengan Lebih Cerdik.
+                        Kelola Bisnis Fashion Anda dengan Lebih Cerdik.
                     </h2>
                     <p class="text-slate-600 text-base leading-relaxed font-semibold">
-                        Sistem kasir (POS) dan manajemen inventaris modern yang dirancang khusus untuk mempermudah bisnis perlengkapan hewan peliharaan Anda.
+                        Sistem kasir (POS) dan manajemen inventaris modern yang dirancang khusus untuk mempermudah bisnis clothing line, butik, dan retail fashion Anda.
                     </p>
                 </div>
 
@@ -49,7 +49,7 @@ const submit = () => {
                         </div>
                         <div>
                             <h4 class="text-sm font-bold text-slate-900">Kasir Point of Sales (POS) Modern</h4>
-                            <p class="text-xs text-slate-500 font-medium">Transaksi penjualan cepat, dukung pencarian cepat, cetak struk, dan riwayat pembayaran.</p>
+                            <p class="text-xs text-slate-500 font-medium">Transaksi penjualan cepat, dukung pencarian ukuran/warna pakaian, cetak struk, dan riwayat pembayaran.</p>
                         </div>
                     </div>
 
@@ -61,7 +61,7 @@ const submit = () => {
                         </div>
                         <div>
                             <h4 class="text-sm font-bold text-slate-900">Manajemen Stok & Rekomendasi Pintar</h4>
-                            <p class="text-xs text-slate-500 font-medium">Pemantauan produk menipis dan sistem rekomendasi restok berdasarkan analisis berkala.</p>
+                            <p class="text-xs text-slate-500 font-medium">Pemantauan stok pakaian/aksesoris menipis dan sistem rekomendasi restok berdasarkan analisis berkala.</p>
                         </div>
                     </div>
 
@@ -73,7 +73,7 @@ const submit = () => {
                         </div>
                         <div>
                             <h4 class="text-sm font-bold text-slate-900">Laporan Penjualan Terperinci</h4>
-                            <p class="text-xs text-slate-500 font-medium">Analisis keuntungan bulanan, produk terlaris, serta grafik transaksi interaktif.</p>
+                            <p class="text-xs text-slate-500 font-medium">Analisis keuntungan bulanan, produk fashion terlaris, serta grafik transaksi interaktif.</p>
                         </div>
                     </div>
                 </div>
