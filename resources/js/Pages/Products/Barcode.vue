@@ -175,7 +175,7 @@ const printBarcodes = () => {
                     <p class="text-slate-500 dark:text-slate-400 mt-1 font-medium text-sm">Pilih produk dan tentukan jumlah barcode yang ingin dicetak.</p>
                 </div>
                 
-                <div class="flex items-center gap-2 bg-white dark:bg-slate-900/40 p-1.5 rounded-lg border border-slate-200 dark:border-white/5">
+                <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md p-3 md:p-2 rounded-3xl md:rounded-md border border-slate-200 dark:border-white/5 shadow-sm flex items-center gap-2">
                     <button 
                         @click="barcodeType = 'CODE128'"
                         :class="[barcodeType === 'CODE128' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5', 'px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all']"
@@ -213,11 +213,10 @@ const printBarcodes = () => {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                             <input 
-                                v-model="search"
+                                v-model="search" 
                                 type="text" 
                                 placeholder="Cari berdasarkan nama atau kode produk..." 
-                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500 dark:text-white"
-                            >
+                                class="w-full pl-10 pr-3 py-2.5 md:py-2 bg-slate-50 dark:bg-white/5 border-none rounded-md md:rounded-md text-xs focus:ring-2 focus:ring-blue-500 transition-all ring-1 ring-slate-200 dark:ring-white/10 dark:text-white">
                         </div>
                     </div>
 

@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use Illuminate\Notifications\Events\NotificationSent;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use App\Listeners\SendWebPushOnNotification;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
         
-        Vite::prefetch(concurrency: 3); 
+        Vite::prefetch(concurrency: 3);
+
+        // Kirim Web Push setiap kali SystemNotification dikirim via database
+        Event::listen(NotificationSent::class, SendWebPushOnNotification::class);
     }
 }

@@ -14,6 +14,7 @@ use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\StockRecommendationController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\PushSubscriptionController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -41,6 +42,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/pos/checkout', [POSController::class, 'checkout'])->name('pos.checkout');
         Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
         Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+
+        // Web Push Subscription
+        Route::get('/push/vapid-public-key', [PushSubscriptionController::class, 'publicKey'])->name('push.public-key');
+        Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+        Route::delete('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
         Route::get('/transactions', [TransaksiController::class, 'index'])->name('transactions.index');
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::get('/payments/{id}', [PaymentController::class, 'show'])->name('payments.show');

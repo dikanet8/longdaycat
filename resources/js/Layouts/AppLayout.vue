@@ -13,6 +13,11 @@ const userDropdownRef = ref(null);
 const isNotificationsOpen = ref(false);
 const notificationsRef = ref(null);
 
+// Push Notification
+const pushSupported = ref(false);
+const pushPermission = ref('default'); // 'default' | 'granted' | 'denied'
+const isPushSubscribed = ref(false);
+
 const handleClickOutside = (event) => {
     if (userDropdownRef.value && !userDropdownRef.value.contains(event.target)) {
         isUserDropdownOpen.value = false;
@@ -120,6 +125,7 @@ const updateTheme = () => {
 onMounted(() => {
     updateTheme();
     document.addEventListener('click', handleClickOutside);
+    initPushNotification();
 });
 
 onUnmounted(() => {
@@ -133,6 +139,98 @@ watch(isDark, () => {
 const logout = () => {
     router.post('/logout');
 };
+
+// ─── Web Push Notification ────────────────────────────────────────────────
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+}
+
+async function initPushNotification() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        pushSupported.value = false;
+        return;
+    }
+    pushSupported.value = true;
+    pushPermission.value = Notification.permission;
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        isPushSubscribed.value = !!subscription;
+    } catch (e) {
+        console.warn('Push init error:', e);
+    }
+}
+
+async function subscribePush() {
+    try {
+        pushPermission.value = await Notification.requestPermission();
+        if (pushPermission.value !== 'granted') return;
+
+        const registration = await navigator.serviceWorker.ready;
+
+        // Ambil VAPID public key dari server
+        const res = await fetch('/push/vapid-public-key', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const { publicKey } = await res.json();
+
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(publicKey),
+        });
+
+        const subJson = subscription.toJSON();
+
+        // Kirim subscription ke server
+        await fetch('/push/subscribe', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({
+                endpoint: subJson.endpoint,
+                p256dh: subJson.keys.p256dh,
+                auth: subJson.keys.auth,
+            }),
+        });
+
+        isPushSubscribed.value = true;
+    } catch (e) {
+        console.error('Push subscribe error:', e);
+    }
+}
+
+async function unsubscribePush() {
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (!subscription) return;
+
+        const endpoint = subscription.endpoint;
+        await subscription.unsubscribe();
+
+        await fetch('/push/unsubscribe', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ endpoint }),
+        });
+
+        isPushSubscribed.value = false;
+    } catch (e) {
+        console.error('Push unsubscribe error:', e);
+    }
+}
 
 const menuGroups = [
     {
@@ -235,13 +333,11 @@ const filteredNavItems = computed(() => {
                             v-for="item in group.items" 
                             :key="item.name"
                             :href="item.href"
-                            class="flex items-center gap-4 px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all group w-full relative overflow-hidden"
+                            class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors w-full relative"
                             :class="{ 'bg-blue-600/10 text-blue-600 dark:text-blue-400 shadow-sm': $page.url === item.href || (item.href !== '/dashboard' && item.href !== '#' && $page.url.startsWith(item.href)) }"
                         >
-                            <!-- Active Indicator (Filament Style) -->
-                            <div v-if="$page.url === item.href || (item.href !== '/dashboard' && item.href !== '#' && $page.url.startsWith(item.href))" class="absolute left-0 top-2 bottom-2 w-1 bg-blue-600 rounded-r-full"></div>
                             
-                            <svg class="w-6 h-6 flex-shrink-0 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon" />
                             </svg>
                             <span v-if="isSidebarOpen" class="font-bold text-sm tracking-wide">{{ item.name }}</span>
@@ -316,7 +412,26 @@ const filteredNavItems = computed(() => {
                         <div v-if="isNotificationsOpen" class="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/5 py-2 z-50 overflow-hidden no-print">
                             <!-- Dropdown Header -->
                             <div class="px-4 py-3 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
-                                <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Notifikasi</h4>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Notifikasi</h4>
+                                    <button 
+                                        v-if="pushSupported && pushPermission !== 'denied'"
+                                        @click.stop="isPushSubscribed ? unsubscribePush() : subscribePush()"
+                                        :title="isPushSubscribed ? 'Matikan Notifikasi Chrome' : 'Aktifkan Notifikasi Chrome'"
+                                        :class="[
+                                            'p-1 rounded-md transition-all flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest',
+                                            isPushSubscribed ? 'text-blue-600 bg-blue-50 dark:bg-blue-500/10' : 'text-slate-400 bg-slate-100 dark:bg-white/5 hover:text-slate-800 dark:hover:text-white'
+                                        ]"
+                                    >
+                                        <svg v-if="isPushSubscribed" class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                                        </svg>
+                                        <svg v-else class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                        </svg>
+                                        <span>Chrome</span>
+                                    </button>
+                                </div>
                                 <button 
                                     v-if="$page.props.auth.unread_notifications_count > 0"
                                     @click="markAllNotificationsRead" 

@@ -22,6 +22,9 @@ export default defineConfig({
             injectRegister: false,
             includeAssets: ['favicon.ico', 'logo.svg'],
             manifestFilename: 'pwa-manifest.json',
+            strategies: 'injectManifest',
+            srcDir: 'resources/js',
+            filename: 'sw.js',
             manifest: {
                 name: 'Longdaycat.Co',
                 short_name: 'Longdaycat',
@@ -46,13 +49,8 @@ export default defineConfig({
                     }
                 ]
             },
-            workbox: {
-                modifyURLPrefix: {
-                    'assets/': '/build/assets/',
-                    'pwa-manifest.json': '/manifest.json'
-                },
+            injectManifest: {
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
-                navigateFallback: '/',
             }
         })
     ],

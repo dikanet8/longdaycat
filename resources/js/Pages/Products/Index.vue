@@ -103,8 +103,8 @@ watch(perPage, (value) => {
             </Link>
 
             <!-- Search & Filters (Synced Layout) -->
-            <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md p-3 md:p-2 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
-                <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-2">
+            <div class="bg-white dark:bg-slate-900/40 backdrop-blur-md p-3 md:p-2 rounded-3xl md:rounded-md border border-slate-200 dark:border-white/5 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-2.5">
                     <!-- Search Field -->
                     <div class="relative w-full md:w-64">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -120,7 +120,7 @@ watch(perPage, (value) => {
                         >
                     </div>
 
-                    <div class="h-6 w-[1px] bg-slate-200 dark:bg-white/10 mx-1 hidden md:block"></div>
+                    
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 md:flex items-center gap-2 w-full">
                         <!-- Ukuran Filter -->

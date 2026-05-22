@@ -3,6 +3,8 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import Pagination from '@/Components/Pagination.vue';
+import { Document, Paragraph, Table, TableRow, TableCell, TextRun, HeadingLevel, AlignmentType, WidthType, BorderStyle, Packer, ShadingType } from 'docx';
+import { saveAs } from 'file-saver';
 
 import {
     Chart as ChartJS,
@@ -48,8 +50,8 @@ watch(() => formFilters.value.per_page, (value) => {
 });
 
 const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
 ];
 
 const formatPrice = (price) => {
@@ -57,10 +59,10 @@ const formatPrice = (price) => {
 };
 
 const stats = computed(() => [
-    { name: 'Total Pendapatan', value: formatPrice(props.stats?.total_pendapatan || 0), change: '+0%', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'text-emerald-400' },
-    { name: 'Total Transaksi', value: props.stats?.total_transaksi || 0, change: '+0%', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', color: 'text-blue-400' },
-    { name: 'Produk Terlaris', value: props.stats?.produk_terlaris || '-', change: 'Top #1', icon: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z', color: 'text-amber-400' },
-    { name: 'Total Produk Terjual', value: (props.stats?.total_produk_terjual || 0) + ' pcs', change: '+0%', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', color: 'text-purple-400' },
+    { name: 'Total Pendapatan', value: formatPrice(props.stats?.total_pendapatan || 0), rawValue: props.stats?.total_pendapatan || 0, change: '+0%', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'text-emerald-400' },
+    { name: 'Total Transaksi', value: props.stats?.total_transaksi || 0, rawValue: props.stats?.total_transaksi || 0, change: '+0%', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', color: 'text-blue-400' },
+    { name: 'Produk Terlaris', value: props.stats?.produk_terlaris || '-', rawValue: props.stats?.produk_terlaris || '-', change: 'Top #1', icon: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z', color: 'text-amber-400' },
+    { name: 'Total Produk Terjual', value: (props.stats?.total_produk_terjual || 0) + ' pcs', rawValue: props.stats?.total_produk_terjual || 0, change: '+0%', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', color: 'text-purple-400' },
 ]);
 
 const chartData = computed(() => ({
@@ -88,6 +90,160 @@ const applyFilter = () => {
 
 const printReport = () => {
     window.print();
+};
+
+const isExportingWord = ref(false);
+
+const exportWord = async () => {
+    isExportingWord.value = true;
+    try {
+        const period = getFilterPeriod();
+        const printNow = new Date().toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const trxList = props.recent_transactions?.data || [];
+
+        const headerBg = { type: ShadingType.SOLID, color: '1e40af', fill: '1e40af' };
+        const rowAltBg = { type: ShadingType.SOLID, color: 'eff6ff', fill: 'eff6ff' };
+
+        const tableRows = [
+            new TableRow({
+                tableHeader: true,
+                children: ['No', 'Kode Transaksi', 'Tanggal', 'Item', 'Total', 'Metode', 'Kasir'].map(h =>
+                    new TableCell({
+                        shading: headerBg,
+                        children: [new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [new TextRun({ text: h, bold: true, color: 'FFFFFF', size: 20, font: 'Calibri' })]
+                        })]
+                    })
+                )
+            }),
+            ...trxList.map((trx, idx) => new TableRow({
+                children: [
+                    new TableCell({ shading: idx % 2 === 1 ? rowAltBg : undefined, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: String(idx + 1), size: 18, font: 'Calibri' })] })] }),
+                    new TableCell({ shading: idx % 2 === 1 ? rowAltBg : undefined, children: [new Paragraph({ children: [new TextRun({ text: trx.kode_transaksi, bold: true, size: 18, font: 'Calibri' })] })] }),
+                    new TableCell({ shading: idx % 2 === 1 ? rowAltBg : undefined, children: [new Paragraph({ children: [new TextRun({ text: new Date(trx.created_at).toLocaleDateString('id-ID'), size: 18, font: 'Calibri' })] })] }),
+                    new TableCell({ shading: idx % 2 === 1 ? rowAltBg : undefined, children: (trx.details || []).map(d => new Paragraph({ children: [new TextRun({ text: `${d.produk?.nama_produk || d.kode_produk} x${d.jumlah}`, size: 18, font: 'Calibri' })] })) }),
+                    new TableCell({ shading: idx % 2 === 1 ? rowAltBg : undefined, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: formatPrice(trx.total_harga), bold: true, color: '1d4ed8', size: 18, font: 'Calibri' })] })] }),
+                    new TableCell({ shading: idx % 2 === 1 ? rowAltBg : undefined, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: trx.metode_bayar, size: 18, font: 'Calibri' })] })] }),
+                    new TableCell({ shading: idx % 2 === 1 ? rowAltBg : undefined, children: [new Paragraph({ children: [new TextRun({ text: trx.user?.name || 'Sistem', size: 18, font: 'Calibri' })] })] }),
+                ]
+            }))
+        ];
+
+        const doc = new Document({
+            styles: {
+                default: {
+                    document: { run: { font: 'Calibri', size: 22 } }
+                }
+            },
+            sections: [{
+                properties: { page: { margin: { top: 720, bottom: 720, left: 900, right: 900 } } },
+                children: [
+                    // Header garis biru atas
+                    new Paragraph({ border: { top: { style: BorderStyle.THICK, size: 24, color: '1e40af' } }, text: '' }),
+                    new Paragraph({ spacing: { after: 100 } }),
+
+                    // Nama perusahaan
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 40 },
+                        children: [new TextRun({ text: 'LONGDAYCAT.CO', bold: true, size: 52, color: '1e40af', font: 'Calibri' })]
+                    }),
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 40 },
+                        children: [new TextRun({ text: 'Sistem Manajemen Inventori & Penjualan', size: 22, color: '64748b', font: 'Calibri' })]
+                    }),
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 },
+                        children: [new TextRun({ text: 'Jl. Contoh No. 123, Kota Anda | Telp: (021) 0000-0000 | info@longdaycat.co', size: 18, color: '94a3b8', font: 'Calibri' })]
+                    }),
+
+                    // Garis pemisah
+                    new Paragraph({ border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '1e40af' } }, spacing: { after: 200 } }),
+
+                    // Judul laporan
+                    new Paragraph({
+                        heading: HeadingLevel.HEADING_1,
+                        alignment: AlignmentType.CENTER,
+                        spacing: { before: 200, after: 100 },
+                        children: [new TextRun({ text: 'LAPORAN PENJUALAN TERPERINCI', bold: true, size: 36, color: '0f172a', font: 'Calibri' })]
+                    }),
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 400 },
+                        children: [new TextRun({ text: `Periode: ${period}  |  Dicetak: ${printNow}`, size: 20, color: '475569', font: 'Calibri', italics: true })]
+                    }),
+
+                    // Ringkasan Stats
+                    new Paragraph({ spacing: { before: 100, after: 100 }, children: [new TextRun({ text: 'RINGKASAN STATISTIK', bold: true, size: 24, color: '1e40af', font: 'Calibri' })] }),
+                    new Table({
+                        width: { size: 100, type: WidthType.PERCENTAGE },
+                        rows: [
+                            new TableRow({
+                                children: [
+                                    new TableCell({ shading: { type: ShadingType.SOLID, color: 'dbeafe', fill: 'dbeafe' }, children: [new Paragraph({ children: [new TextRun({ text: 'Total Pendapatan', bold: true, size: 20, color: '1e40af', font: 'Calibri' })] })] }),
+                                    new TableCell({ shading: { type: ShadingType.SOLID, color: 'dbeafe', fill: 'dbeafe' }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: formatPrice(props.stats?.total_pendapatan || 0), bold: true, size: 24, color: '16a34a', font: 'Calibri' })] })] }),
+                                    new TableCell({ shading: { type: ShadingType.SOLID, color: 'f0fdf4', fill: 'f0fdf4' }, children: [new Paragraph({ children: [new TextRun({ text: 'Total Transaksi', bold: true, size: 20, color: '15803d', font: 'Calibri' })] })] }),
+                                    new TableCell({ shading: { type: ShadingType.SOLID, color: 'f0fdf4', fill: 'f0fdf4' }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: String(props.stats?.total_transaksi || 0), bold: true, size: 24, color: '1d4ed8', font: 'Calibri' })] })] }),
+                                    new TableCell({ shading: { type: ShadingType.SOLID, color: 'fefce8', fill: 'fefce8' }, children: [new Paragraph({ children: [new TextRun({ text: 'Produk Terjual', bold: true, size: 20, color: 'a16207', font: 'Calibri' })] })] }),
+                                    new TableCell({ shading: { type: ShadingType.SOLID, color: 'fefce8', fill: 'fefce8' }, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `${props.stats?.total_produk_terjual || 0} pcs`, bold: true, size: 24, color: 'b45309', font: 'Calibri' })] })] }),
+                                ]
+                            })
+                        ]
+                    }),
+                    new Paragraph({ spacing: { after: 300 } }),
+
+                    // Tabel transaksi
+                    new Paragraph({ spacing: { before: 100, after: 100 }, children: [new TextRun({ text: 'DAFTAR TRANSAKSI', bold: true, size: 24, color: '1e40af', font: 'Calibri' })] }),
+                    new Table({
+                        width: { size: 100, type: WidthType.PERCENTAGE },
+                        rows: tableRows
+                    }),
+                    new Paragraph({ spacing: { after: 600 } }),
+
+                    // Tanda tangan
+                    new Paragraph({ border: { top: { style: BorderStyle.SINGLE, size: 4, color: 'e2e8f0' } }, spacing: { before: 400, after: 200 } }),
+                    new Table({
+                        width: { size: 100, type: WidthType.PERCENTAGE },
+                        borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideH: { style: BorderStyle.NONE }, insideV: { style: BorderStyle.NONE } },
+                        rows: [
+                            new TableRow({ children: [
+                                new TableCell({ children: [
+                                    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Mengetahui,', size: 20, font: 'Calibri', color: '475569' })] }),
+                                    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 800 }, children: [new TextRun({ text: '_____________________', size: 20, color: '94a3b8', font: 'Calibri' })] }),
+                                    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Pimpinan / Owner', bold: true, size: 20, font: 'Calibri' })] }),
+                                    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Longdaycat.Co', size: 18, color: '64748b', font: 'Calibri', italics: true })] }),
+                                ] }),
+                                new TableCell({ children: [
+                                    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Dibuat oleh,', size: 20, font: 'Calibri', color: '475569' })] }),
+                                    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 800 }, children: [new TextRun({ text: '_____________________', size: 20, color: '94a3b8', font: 'Calibri' })] }),
+                                    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Admin / Kasir', bold: true, size: 20, font: 'Calibri' })] }),
+                                    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Sistem Longdaycat', size: 18, color: '64748b', font: 'Calibri', italics: true })] }),
+                                ] }),
+                            ]})
+                        ]
+                    }),
+
+                    // Footer
+                    new Paragraph({ spacing: { before: 400 }, border: { top: { style: BorderStyle.SINGLE, size: 4, color: '1e40af' } } }),
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        children: [new TextRun({ text: `Dokumen ini digenerate otomatis oleh sistem Longdaycat.Co pada ${printNow}`, size: 16, color: '94a3b8', italics: true, font: 'Calibri' })]
+                    }),
+                ]
+            }]
+        });
+
+        const blob = await Packer.toBlob(doc);
+        saveAs(blob, `Laporan-Penjualan-${period.replace(/\s/g, '-')}.docx`);
+    } catch (e) {
+        console.error('Export Word gagal:', e);
+        alert('Gagal export Word: ' + e.message);
+    } finally {
+        isExportingWord.value = false;
+    }
 };
 
 const getFilterPeriod = () => {
@@ -172,9 +328,7 @@ const formatDate = (date) => {
     return new Date(date).toLocaleString('id-ID', {
         day: 'numeric',
         month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        year: 'numeric'
     });
 };
 
@@ -202,18 +356,29 @@ const getExportUrl = () => {
     <Head title="Laporan Penjualan" />
 
     <AppLayout>
-        <!-- Print Only Header -->
-        <div class="hidden print:block mb-6 border-b-2 border-slate-900 pb-4">
-            <div class="flex justify-between items-end">
-                <div>
-                    <h1 class="text-2xl font-bold text-slate-900">Longdaycat.Co</h1>
-                    <p class="text-xs text-slate-600 mt-1">Laporan Penjualan Terperinci</p>
-                </div>
-                <div class="text-right text-xs text-slate-600">
-                    <p class="font-semibold">Periode: {{ getFilterPeriod() }}</p>
-                    <p class="text-[10px] mt-1 text-slate-500">Dicetak pada: {{ printDate }}</p>
+        <!-- Print Only Header (PDF) - Premium Design -->
+        <div class="hidden print:block">
+            <!-- Kop Surat -->
+            <div class="print-header" style="border-top: 6px solid #1e40af; padding-top: 20px; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div style="font-size: 28px; font-weight: 900; color: #1e40af; letter-spacing: -1px;">LONGDAYCAT.CO</div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Sistem Manajemen Inventori &amp; Penjualan</div>
+                        <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">Jl. Contoh No. 123, Kota Anda | Telp: (021) 0000-0000</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 11px; font-weight: 700; color: #334155;">LAPORAN PENJUALAN</div>
+                        <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Periode: {{ getFilterPeriod() }}</div>
+                        <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;">Dicetak: {{ printDate }}</div>
+                    </div>
                 </div>
             </div>
+            <div style="border-bottom: 2px solid #1e40af; margin-bottom: 16px;"></div>
+
+
+
+            <!-- Judul Tabel -->
+            <div style="font-size: 11px; font-weight: 800; color: #1e40af; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0;">Daftar Transaksi Terperinci</div>
         </div>
 
         <div class="space-y-8">
@@ -231,13 +396,13 @@ const getExportUrl = () => {
                     <label class="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold ml-1 mb-1.5">Tanggal</label>
                     <input type="date" v-model="formFilters.date" @change="applyFilter" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-36 py-2.5 px-3.5 shadow-sm" />
                 </div>
-                <div class="flex flex-col">
+                <div class="flex flex-col" v-if="!formFilters.date">
                     <label class="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold ml-1 mb-1.5">Bulan</label>
                     <select v-model="formFilters.month" @change="applyFilter" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-32 py-2.5 px-3.5 shadow-sm cursor-pointer">
                         <option v-for="(m, i) in months" :key="m" :value="i+1">{{ m }}</option>
                     </select>
                 </div>
-                <div class="flex flex-col">
+                <div class="flex flex-col" v-if="!formFilters.date">
                     <label class="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold ml-1 mb-1.5">Tahun</label>
                     <select v-model="formFilters.year" @change="applyFilter" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-24 py-2.5 px-3.5 shadow-sm cursor-pointer">
                         <option v-for="y in [2024, 2025, 2026]" :key="y" :value="y">{{ y }}</option>
@@ -245,15 +410,32 @@ const getExportUrl = () => {
                 </div>
                 <div class="flex flex-col col-span-2 md:col-span-1 justify-end w-full md:w-auto mt-2 md:mt-0">
                     <div class="flex items-center gap-2 w-full md:w-auto">
+                        <!-- PDF -->
                         <button 
                             @click="printReport" 
-                            class="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 h-[38px] cursor-pointer"
+                            class="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 h-[38px] cursor-pointer"
                         >
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                             </svg>
                             <span>PDF</span>
                         </button>
+                        <!-- Word -->
+                        <button 
+                            @click="exportWord"
+                            :disabled="isExportingWord"
+                            class="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 h-[38px] cursor-pointer"
+                        >
+                            <svg v-if="!isExportingWord" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <svg v-else class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                            </svg>
+                            <span>{{ isExportingWord ? '...' : 'Word' }}</span>
+                        </button>
+                        <!-- Excel/CSV -->
                         <a 
                             :href="getExportUrl()" 
                             class="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all active:scale-95 h-[38px] cursor-pointer"
@@ -349,7 +531,7 @@ const getExportUrl = () => {
                     <table class="w-full text-left">
                         <thead class="bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-400 text-[11px] uppercase tracking-widest font-black">
                             <tr>
-                                <th class="px-8 py-5">Waktu</th>
+                                <th class="px-8 py-5">Tanggal</th>
                                 <th class="px-8 py-5">Kode</th>
                                 <th class="px-8 py-5">Item</th>
                                 <th class="px-8 py-5">Total</th>
@@ -426,18 +608,38 @@ const getExportUrl = () => {
                 </div>
             </div>
         </div>
+
+        <!-- Print Signature & Footer (PDF only) -->
+        <div class="hidden print:block mt-8">
+            <div class="print-signature">
+                <div class="print-signature-box">
+                    <div class="print-signature-label">Mengetahui,</div>
+                    <div class="print-signature-line"></div>
+                    <div class="print-signature-name">Pimpinan / Owner</div>
+                    <div class="print-signature-title">Longdaycat.Co</div>
+                </div>
+                <div class="print-signature-box">
+                    <div class="print-signature-label">Dibuat oleh,</div>
+                    <div class="print-signature-line"></div>
+                    <div class="print-signature-name">Admin / Kasir</div>
+                    <div class="print-signature-title">Sistem Longdaycat</div>
+                </div>
+            </div>
+            <div class="print-footer">
+                Dokumen ini digenerate otomatis oleh sistem Longdaycat.Co — {{ printDate }}
+            </div>
+        </div>
     </AppLayout>
 </template>
 
 <style>
 @media print {
-    /* Reset heights and layout scrolling for proper multi-page printing */
-    html, 
-    body, 
-    #app, 
-    #app > div, 
-    #app > div > div, 
-    main {
+    @page {
+        size: A4 landscape;
+        margin: 12mm 14mm;
+    }
+
+    html, body, #app, #app > div, #app > div > div, main {
         height: auto !important;
         min-height: 0 !important;
         max-height: none !important;
@@ -445,66 +647,101 @@ const getExportUrl = () => {
         position: static !important;
         display: block !important;
         background-color: white !important;
-        color: black !important;
+        color: #0f172a !important;
         background: none !important;
+        font-family: 'Calibri', 'Arial', sans-serif !important;
     }
 
-    /* Hide layout chrome and non-print items */
-    aside, 
-    header, 
-    nav, 
-    .no-print, 
-    button, 
-    a, 
-    select {
-        display: none !important;
-    }
+    /* Sembunyikan elemen UI */
+    aside, header, nav, .no-print, button, a, select, .chart-container { display: none !important; }
 
-    /* Full-width print space */
-    main {
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-    }
+    main { margin: 0 !important; padding: 0 !important; width: 100% !important; }
 
-    /* Print friendly grid/containers */
+    /* Stats grid di print */
     .grid {
         display: grid !important;
-        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-        gap: 1rem !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 6px !important;
+        margin-bottom: 12px !important;
     }
-    
     .grid > div {
         border: 1px solid #e2e8f0 !important;
-        padding: 1rem !important;
-        border-radius: 0.5rem !important;
-        background: white !important;
+        padding: 8px 10px !important;
+        border-radius: 4px !important;
+        background: #f8fafc !important;
         box-shadow: none !important;
-        color: black !important;
+        color: #0f172a !important;
     }
 
-    /* Table printing optimizations */
+    /* Tabel utama */
     table {
         width: 100% !important;
         border-collapse: collapse !important;
-        margin-top: 1.5rem !important;
+        margin-top: 0 !important;
+        font-size: 10px !important;
     }
-    
-    th, td {
-        border-bottom: 1px solid #cbd5e1 !important;
-        padding: 10px 12px !important;
-        font-size: 11px !important;
-        color: black !important;
+
+    thead tr {
+        background: #1e40af !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     th {
-        font-weight: bold !important;
-        background-color: #f1f5f9 !important;
+        background-color: #1e40af !important;
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        font-size: 9px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        padding: 8px 10px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        border: none !important;
     }
 
-    tr {
-        page-break-inside: avoid !important;
+    td {
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding: 7px 10px !important;
+        font-size: 10px !important;
+        color: #1e293b !important;
+        vertical-align: top !important;
+    }
+
+    /* Zebra stripes */
+    tbody tr:nth-child(even) {
+        background-color: #eff6ff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    tbody tr:nth-child(odd) { background-color: #ffffff !important; }
+
+    tr { page-break-inside: avoid !important; }
+
+    /* Tanda tangan setelah tabel */
+    .print-signature {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 40px !important;
+        margin-top: 40px !important;
+        padding-top: 16px !important;
+        border-top: 1px solid #e2e8f0 !important;
+    }
+    .print-signature-box { text-align: center !important; }
+    .print-signature-label { font-size: 10px !important; color: #64748b !important; }
+    .print-signature-line { margin: 48px auto 4px !important; width: 160px !important; border-top: 1px solid #94a3b8 !important; }
+    .print-signature-name { font-size: 10px !important; font-weight: 700 !important; color: #0f172a !important; }
+    .print-signature-title { font-size: 9px !important; color: #94a3b8 !important; font-style: italic !important; }
+
+    /* Footer */
+    .print-footer {
+        margin-top: 16px !important;
+        border-top: 1px solid #1e40af !important;
+        padding-top: 6px !important;
+        text-align: center !important;
+        font-size: 8px !important;
+        color: #94a3b8 !important;
+        font-style: italic !important;
     }
 }
 </style>

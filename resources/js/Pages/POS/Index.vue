@@ -1,7 +1,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref, computed, onUnmounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 
 const props = defineProps({
@@ -19,6 +19,72 @@ const scanError = ref('');
 const lastScanned = ref('');
 const showBlink = ref(false);
 const isProcessing = ref(false);
+const continuousScan = ref(true);
+
+let barcodeBuffer = '';
+let lastKeyTime = 0;
+
+const playBeep = () => {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); // 1000 Hz beep
+        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime); // volume (5%)
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.08); // play for 80ms
+    } catch (e) {
+        console.warn("Audio context not allowed or supported:", e);
+    }
+};
+
+const handleGlobalKeydown = (e) => {
+    // Avoid intercepting if user is typing in payment modal or typing numbers in payment fields
+    if (showPaymentModal.value) return;
+    
+    // Avoid intercepting if focus is on inputs like payment/custom inputs (except search menu or barcode input)
+    const target = e.target;
+    if (target && target.tagName === 'INPUT') {
+        const isSearchInput = target.placeholder && target.placeholder.toLowerCase().includes("cari menu");
+        const isManualInput = target.placeholder && target.placeholder.toUpperCase().includes("KODE MANUAL");
+        if (!isSearchInput && !isManualInput) {
+            return;
+        }
+    }
+    
+    const now = Date.now();
+    
+    // Check speed. If characters arrive < 50ms apart, it's highly likely a scanner
+    if (now - lastKeyTime > 50) {
+        barcodeBuffer = '';
+    }
+    lastKeyTime = now;
+    
+    if (e.key === 'Enter') {
+        if (barcodeBuffer.length >= 3) {
+            e.preventDefault();
+            handleBarcodeScan(barcodeBuffer);
+            barcodeBuffer = '';
+            
+            // If the search input was focused, clear it
+            if (target && target.placeholder && target.placeholder.toLowerCase().includes("cari menu")) {
+                search.value = '';
+            }
+        }
+    } else if (e.key.length === 1) {
+        barcodeBuffer += e.key;
+    }
+};
+
+onMounted(() => {
+    window.addEventListener('keydown', handleGlobalKeydown);
+});
 
 const search = ref('');
 const cart = ref([]);
@@ -59,36 +125,65 @@ const processPayment = () => {
 };
 
 const handleBarcodeScan = (decodedText) => {
-    if (isProcessing.value) return;
+    let code = '';
+    if (typeof decodedText === 'string') {
+        code = decodedText.trim();
+    } else {
+        code = barcodeInput.value.trim();
+    }
     
-    const code = (typeof decodedText === 'string' ? decodedText : barcodeInput.value).trim();
     if (!code) return;
+
+    // Smart lock: prevent double-scanning the same code too quickly
+    if (code === lastScanned.value && isProcessing.value) {
+        return;
+    }
 
     isProcessing.value = true;
     lastScanned.value = code;
     console.log("Barcode detected:", code);
     
-    // Always show blink so user knows scanner "responded"
-    showBlink.value = true;
-    setTimeout(() => showBlink.value = false, 300);
+    // Play professional synthesised audio beep feedback
+    playBeep();
 
-    const product = props.products.find(p => p.kode_produk === code);
+    // Show visual checkmark flash
+    showBlink.value = true;
+    setTimeout(() => showBlink.value = false, 350);
+
+    const product = props.products.find(p => String(p.kode_produk).trim() === code);
     
     if (product) {
         addToCart(product);
         barcodeInput.value = '';
+        scanError.value = ''; // clear error
         
-        // Close scanner after success
-        setTimeout(() => {
-            closeScanner();
-            isProcessing.value = false;
-        }, 500);
+        if (continuousScan.value) {
+            // Keep scanner open. Reset processing lock after 1.5 seconds for the same item.
+            setTimeout(() => {
+                if (lastScanned.value === code) {
+                    isProcessing.value = false;
+                    lastScanned.value = '';
+                }
+            }, 1500);
+        } else {
+            // Close scanner after success
+            setTimeout(() => {
+                closeScanner();
+                isProcessing.value = false;
+            }, 500);
+        }
     } else {
         console.warn("Product not found for code:", code);
-        // Reset lock after a short delay
+        scanError.value = `Produk dengan kode "${code}" tidak ditemukan.`;
+        
+        // Reset lock and clear error after a short delay
         setTimeout(() => {
+            scanError.value = '';
             isProcessing.value = false;
-        }, 1500);
+            if (lastScanned.value === code) {
+                lastScanned.value = '';
+            }
+        }, 2000);
     }
 };
 
@@ -125,7 +220,12 @@ const startCamera = async () => {
         html5QrCode.value = new Html5Qrcode("reader");
         const config = { 
             fps: 20,
-            aspectRatio: 1.0
+            qrbox: (viewfinderWidth, viewfinderHeight) => {
+                // Wide rectangle optimized for 1D barcodes and QR codes
+                const width = Math.min(viewfinderWidth * 0.85, 320);
+                const height = Math.min(viewfinderHeight * 0.55, 180);
+                return { width, height };
+            }
         };
         
         // Define formats to support
@@ -180,6 +280,7 @@ const closeScanner = async () => {
 
 onUnmounted(() => {
     stopCamera();
+    window.removeEventListener('keydown', handleGlobalKeydown);
 });
 
 const filteredProducts = computed(() => {
@@ -568,6 +669,38 @@ const formatPrice = (price) => {
                                 <!-- Scan Line Animation -->
                                 <div v-if="isScanning" class="absolute top-0 left-0 w-full h-1 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.8)] animate-scan z-20"></div>
 
+                                <!-- Green Flash checkmark feedback when scanned successfully -->
+                                <Transition
+                                    enter-active-class="transition duration-150 ease-out"
+                                    enter-from-class="opacity-0 scale-95"
+                                    enter-to-class="opacity-100 scale-100"
+                                    leave-active-class="transition duration-150 ease-in"
+                                    leave-from-class="opacity-100 scale-100"
+                                    leave-to-class="opacity-0 scale-95"
+                                >
+                                    <div v-if="showBlink" class="absolute inset-0 bg-emerald-500/30 backdrop-blur-[2px] flex items-center justify-center z-30 pointer-events-none">
+                                        <div class="bg-emerald-500 text-white p-3 rounded-full shadow-lg scale-110">
+                                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </Transition>
+
+                                <!-- Live Error Message Banner -->
+                                <Transition
+                                    enter-active-class="transition duration-200 ease-out"
+                                    enter-from-class="opacity-0 translate-y-2"
+                                    enter-to-class="opacity-100 translate-y-0"
+                                    leave-active-class="transition duration-150 ease-in"
+                                    leave-from-class="opacity-100 translate-y-0"
+                                    leave-to-class="opacity-0 translate-y-2"
+                                >
+                                    <div v-if="scanError && isScanning" class="absolute bottom-4 inset-x-4 bg-red-600/90 backdrop-blur-sm text-white px-4 py-2.5 rounded-md text-xs font-bold text-center z-30 shadow-lg border border-red-500/20">
+                                        {{ scanError }}
+                                    </div>
+                                </Transition>
+
                                 <!-- Overlay when not scanning -->
                                 <div v-if="!isScanning" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-sm p-6">
                                     <div class="w-20 h-20 bg-blue-600 rounded-md flex items-center justify-center mb-6 text-white shadow-xl">
@@ -582,11 +715,20 @@ const formatPrice = (price) => {
                                     >
                                         Mulai Scan
                                     </button>
-                                    <p v-if="scanError" class="mt-6 text-red-400 text-[10px] font-black uppercase">{{ scanError }}</p>
+                                    <p v-if="scanError" class="mt-6 text-red-400 text-[10px] font-black uppercase text-center">{{ scanError }}</p>
                                 </div>
                             </div>
                             
                             <div class="space-y-4">
+                                <!-- Continuous Scan Toggle -->
+                                <div class="flex items-center justify-between bg-slate-50 dark:bg-white/5 px-4 py-3 rounded-md border border-slate-200 dark:border-white/5">
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Scan Berkelanjutan</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" v-model="continuousScan" class="sr-only peer">
+                                        <div class="w-9 h-5 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
+
                                 <div class="relative">
                                     <input 
                                         ref="scannerInput"
@@ -631,5 +773,10 @@ const formatPrice = (price) => {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+#reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
 }
 </style>
