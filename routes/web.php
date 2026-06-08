@@ -15,6 +15,7 @@ use App\Http\Controllers\StockRecommendationController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PushSubscriptionController;
+use App\Http\Controllers\SettingController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -72,6 +73,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('categories', KategoriController::class);
         Route::get('/reports/sales', [ReportsController::class, 'sales'])->name('reports.sales');
         Route::get('/settings/activity-log', [ActivityLogController::class, 'index'])->name('settings.activity-log');
+        Route::get('/settings/system', [SettingController::class, 'index'])->name('settings.system');
+        Route::post('/settings/system', [SettingController::class, 'update'])->name('settings.system.update');
     });
 });
 

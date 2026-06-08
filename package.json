@@ -3,7 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build && cp public/build/*.js public/ && cp public/build/pwa-manifest.json public/manifest.json",
+        "build": "vite build && cpy \"public/build/*.js\" \"public\" && cpy \"public/build/pwa-manifest.json\" \"public\" --rename=manifest.json",
         "dev": "vite"
     },
     "devDependencies": {
@@ -15,6 +15,7 @@
         "autoprefixer": "^10.4.12",
         "axios": "^1.11.0",
         "concurrently": "^9.0.1",
+        "cpy-cli": "^7.0.0",
         "laravel-vite-plugin": "^2.0.0",
         "postcss": "^8.4.31",
         "tailwindcss": "^3.2.1",

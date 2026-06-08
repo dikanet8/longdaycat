@@ -53,11 +53,5 @@ export default defineConfig({
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
             }
         })
-    ],
-    server: {
-        host: '0.0.0.0',
-        hmr: {
-            host: '172.16.50.105',
-        },
-    },
+    ]
 });

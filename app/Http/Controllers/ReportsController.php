@@ -14,9 +14,14 @@ class ReportsController extends Controller
 {
     public function sales(Request $request)
     {
+        $day = $request->has('day') ? $request->input('day') : date('j');
         $date = $request->input('date');
         $month = $request->input('month', date('n'));
         $year = $request->input('year', date('Y'));
+
+        if ($day && !$date) {
+            $date = $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT) . '-' . str_pad($day, 2, '0', STR_PAD_LEFT);
+        }
 
         if ($request->input('export') === 'csv') {
             $transactions = Transaksi::with(['user', 'details.produk'])
@@ -179,6 +184,7 @@ class ReportsController extends Controller
                 ->paginate($request->input('per_page', 10))
                 ->withQueryString(),
             'filters' => [
+                'day' => $day ? (int)$day : null,
                 'date' => $date,
                 'month' => (int)$month,
                 'year' => (int)$year,
