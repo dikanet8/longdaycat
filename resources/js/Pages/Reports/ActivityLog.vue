@@ -49,7 +49,7 @@ const getActivityColor = (activity) => {
       </div>
 
       <!-- Table & List Container -->
-      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
+      <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
         <!-- Desktop Table -->
         <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left">
@@ -109,7 +109,7 @@ const getActivityColor = (activity) => {
               </span>
             </div>
             <div class="pl-11">
-              <p class="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-100 dark:border-white/5">
+              <p class="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed bg-slate-50 dark:bg-white/5 p-3 rounded-md border border-slate-100 dark:border-white/5">
                 {{ log.description ||'-' }}
               </p>
               <div class="mt-2 flex items-center gap-1.5 text-[9px] font-mono text-slate-400 uppercase tracking-tighter">

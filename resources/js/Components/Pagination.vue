@@ -18,6 +18,8 @@ defineProps({
       <Link v-else
         class="flex-1 text-center px-4 py-2.5 text-xs font-bold uppercase border border-slate-200 dark:border-white/5 rounded-xl transition-all bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-[0.98]"
         :href="links[0].url"
+        preserve-scroll
+        preserve-state
         v-html="links[0].label"
       />
 
@@ -29,6 +31,8 @@ defineProps({
       <Link v-else
         class="flex-1 text-center px-4 py-2.5 text-xs font-bold uppercase border border-slate-200 dark:border-white/5 rounded-xl transition-all bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-[0.98]"
         :href="links[links.length - 1].url"
+        preserve-scroll
+        preserve-state
         v-html="links[links.length - 1].label"
       />
     </div>
@@ -44,6 +48,8 @@ defineProps({
           class="px-3.5 py-2 text-xs leading-4 border border-slate-200 dark:border-white/5 rounded-lg transition-all hover:bg-slate-50 dark:hover:bg-white/5 font-semibold cursor-pointer"
           :class="{'bg-blue-600 border-blue-600 text-white hover:bg-blue-700': link.active }"
           :href="link.url"
+          preserve-scroll
+          preserve-state
           v-html="link.label"
         />
       </template>

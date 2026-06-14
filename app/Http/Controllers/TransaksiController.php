@@ -14,10 +14,9 @@ class TransaksiController extends Controller
     {
         $perPage = $request->input('per_page', 10);
         return Inertia::render('Transactions/Index', [
-            'transactions' => Transaksi::with(['details.produk', 'user'])
+            'transactions' => Transaksi::with(['details.produk', 'user', 'pembayaran'])
                 ->orderBy('created_at', 'desc')
-                ->paginate($perPage)
-                ->withQueryString(),
+                ->get(),
             'users' => User::all(),
             'filters' => [
                 'per_page' => (int)$perPage

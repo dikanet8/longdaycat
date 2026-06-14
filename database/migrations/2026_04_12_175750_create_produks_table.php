@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('produk', function (Blueprint $table) {
             $table->id();
             $table->string('kode_produk', 100)->unique();
+            $table->foreignId('kategori_id')->nullable()->after('id')->constrained('kategori')->nullOnDelete();
             $table->string('nama_produk', 255);
             $table->string('gambar', 255);
             $table->enum('ukuran', ['S', 'M', 'L', 'XL', 'XXL']);

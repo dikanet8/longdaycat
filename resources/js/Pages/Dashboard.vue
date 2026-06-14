@@ -209,7 +209,7 @@ const chartOptions = {
       <!-- Content Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Sales Chart -->
-        <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm flex flex-col relative border-t-4 border-t-blue-600">
+        <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-md overflow-hidden shadow-sm flex flex-col relative border-t-4 border-t-blue-600">
           <div class="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
             <div>
               <h3 class="font-bold text-lg text-slate-900 dark:text-white">Grafik Penjualan</h3>
@@ -226,7 +226,7 @@ const chartOptions = {
         </div>
 
         <!-- Recent Transactions -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm flex flex-col relative border-t-4 border-t-purple-600">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-md overflow-hidden shadow-sm flex flex-col relative border-t-4 border-t-purple-600">
           <div class="p-6 border-b border-slate-100 dark:border-white/5">
             <h3 class="font-bold text-lg text-slate-900 dark:text-white">Transaksi Terakhir</h3>
             <p class="text-xs text-slate-500 font-medium">5 Transaksi terbaru hari ini</p>

@@ -173,7 +173,8 @@ const showMobileFilters = ref(false);
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-white/5 text-slate-700 dark:text-slate-200">
-                  <tr v-for="product in filteredProducts" :key="product.id" class="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group">
+                  <template v-if="filteredProducts.length > 0">
+                    <tr v-for="product in filteredProducts" :key="product.id" class="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group">
                     <td class="px-8 py-5">
                       <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shadow-inner flex-shrink-0 border border-slate-200 dark:border-white/5">
@@ -201,6 +202,27 @@ const showMobileFilters = ref(false);
                         Update
                       </button>
                     </td>
+                    </tr>
+                  </template>
+                  <tr v-else>
+                    <td colspan="3" class="px-8 py-20 text-center">
+                      <div class="flex flex-col items-center justify-center">
+                        <div class="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
+                          <svg class="w-10 h-10 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                          </svg>
+                        </div>
+                        <h3 class="text-base font-black text-slate-800 dark:text-white mb-1">
+                          {{ search ? 'Produk Tidak Ditemukan' : 'Belum Ada Produk' }}
+                        </h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mb-5">
+                          {{ search ? 'Kata kunci pencarian Anda tidak cocok dengan produk manapun.' : 'Anda belum menambahkan produk apapun ke sistem.' }}
+                        </p>
+                        <button v-if="search" @click="resetProductsFilter" class="px-5 py-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-md text-xs font-bold transition-colors">
+                          Reset Pencarian
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -208,7 +230,8 @@ const showMobileFilters = ref(false);
 
             <!-- Mobile Card List -->
             <div class="md:hidden divide-y divide-slate-100 dark:divide-white/5">
-              <div v-for="product in filteredProducts" :key="'mobile-'+product.id" class="p-5 flex items-center justify-between gap-4">
+              <template v-if="filteredProducts.length > 0">
+                <div v-for="product in filteredProducts" :key="'mobile-'+product.id" class="p-5 flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3 min-w-0">
                   <div class="w-12 h-12 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden shadow-inner flex-shrink-0 border border-slate-200 dark:border-white/5">
                     <img v-if="product.gambar" :src="product.gambar" class="w-full h-full object-cover" />
@@ -232,6 +255,23 @@ const showMobileFilters = ref(false);
                     Update
                   </button>
                 </div>
+                </div>
+              </template>
+              <div v-else class="py-16 px-4 flex flex-col items-center justify-center text-center">
+                <div class="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
+                  <svg class="w-10 h-10 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <h3 class="text-base font-black text-slate-800 dark:text-white mb-1">
+                  {{ search ? 'Produk Tidak Ditemukan' : 'Belum Ada Produk' }}
+                </h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mb-5">
+                  {{ search ? 'Kata kunci pencarian Anda tidak cocok dengan produk manapun.' : 'Anda belum menambahkan produk apapun ke sistem.' }}
+                </p>
+                <button v-if="search" @click="resetProductsFilter" class="px-5 py-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-md text-xs font-bold transition-colors">
+                  Reset Pencarian
+                </button>
               </div>
             </div>
             <!-- Pagination & Per Page -->
@@ -401,13 +441,21 @@ const showMobileFilters = ref(false);
 
             <!-- History Empty State -->
             <div v-if="filteredHistory.length === 0" class="px-8 py-20 text-center">
-              <div class="flex flex-col items-center">
-                <div class="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-md flex items-center justify-center mb-4 border border-slate-100 dark:border-white/5">
-                  <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              <div class="flex flex-col items-center justify-center">
+                <div class="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
+                  <svg class="w-10 h-10 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                   </svg>
                 </div>
-                <p class="text-slate-500 dark:text-slate-400 text-sm font-medium italic">Tidak ada riwayat yang cocok.</p>
+                <h3 class="text-base font-black text-slate-800 dark:text-white mb-1">
+                  {{ (historySearch || historyDate || historyActivity || historyUser) ? 'Riwayat Tidak Ditemukan' : 'Belum Ada Riwayat' }}
+                </h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mb-5">
+                  {{ (historySearch || historyDate || historyActivity || historyUser) ? 'Tidak ada riwayat stok yang cocok dengan kata kunci atau filter Anda.' : 'Anda belum memiliki riwayat stok apapun.' }}
+                </p>
+                <button v-if="historySearch || historyDate || historyActivity || historyUser" @click="resetHistoryFilters" class="px-5 py-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-md text-xs font-bold transition-colors">
+                  Reset Filter Pencarian
+                </button>
               </div>
             </div>
             <!-- Pagination & Per Page -->
@@ -451,7 +499,7 @@ const showMobileFilters = ref(false);
             leave-from-class="opacity-100 translate-y-0 sm:scale-100"
             leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
           >
-            <div v-if="showUpdateModal" class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+            <div v-if="showUpdateModal" class="relative bg-white dark:bg-slate-900 rounded-md shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
               <!-- Header -->
               <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-3">

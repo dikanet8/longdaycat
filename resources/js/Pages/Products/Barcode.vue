@@ -1,7 +1,7 @@
 <script setup>
 import AppLayout from'@/Layouts/AppLayout.vue';
 import { Head, router } from'@inertiajs/vue3';
-import { ref, watch, onMounted, nextTick } from'vue';
+import { ref, watch, onMounted, nextTick, computed } from 'vue';
 import Pagination from'@/Components/Pagination.vue';
 import JsBarcode from'jsbarcode';
 
@@ -45,19 +45,15 @@ const applyPreset = (indexVal) => {
 
 const printList = ref([]);
 
-let searchTimeout = null;
-watch(search, (value) => {
-  if (searchTimeout) clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    router.get('/barcodes', { search: value, per_page: perPage.value }, {
-      preserveState: true,
-      replace: true
-    });
-  }, 300);
+const filteredProducts = computed(() => {
+  return props.products.data.filter(product => {
+    return product.nama_produk.toLowerCase().includes(search.value.toLowerCase()) ||
+           product.kode_produk.toLowerCase().includes(search.value.toLowerCase());
+  });
 });
 
 watch(perPage, (value) => {
-  router.get('/barcodes', { search: search.value, per_page: value }, {
+  router.get('/barcodes', { per_page: value }, {
     preserveState: true,
     replace: true
   });
@@ -65,7 +61,7 @@ watch(perPage, (value) => {
 
 const generateBarcodes = () => {
   nextTick(() => {
-    props.products.data.forEach(product => {
+    filteredProducts.value.forEach(product => {
       if (product.kode_produk && barcodeType.value ==='CODE128') {
         try {
           JsBarcode(`#barcode-${product.id}`, product.kode_produk, {
@@ -174,21 +170,6 @@ const printBarcodes = () => {
           <h1 class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Cetak Barcode</h1>
           <p class="text-slate-500 dark:text-slate-400 mt-1 font-medium text-sm">Pilih produk dan tentukan jumlah barcode yang ingin dicetak.</p>
         </div>
-        
-        <div class="bg-white dark:bg-slate-900 p-3 md:p-2 rounded-3xl md:rounded-md border border-slate-200 dark:border-white/5 shadow-sm flex items-center gap-2">
-          <button 
-            @click="barcodeType ='CODE128'"
-            :class="[barcodeType ==='CODE128' ?'bg-blue-600 text-white shadow-md' :'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5','px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all']"
-          >
-            Barcode
-          </button>
-          <button 
-            @click="barcodeType ='QR'"
-            :class="[barcodeType ==='QR' ?'bg-blue-600 text-white shadow-md' :'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5','px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all']"
-          >
-            QR Code
-          </button>
-        </div>
 
         <div class="hidden md:flex items-center gap-3">
           <button 
@@ -207,16 +188,37 @@ const printBarcodes = () => {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Left: Product List -->
         <div class="lg:col-span-2 space-y-4">
-          <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm flex items-center gap-4">
-            <div class="relative flex-1">
-              <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+          <!-- Toolbar -->
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <!-- Search -->
+            <div class="relative w-full md:w-80">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
               <input 
                 v-model="search" 
                 type="text" 
                 placeholder="Cari berdasarkan nama atau kode produk..." 
-                class="w-full pl-10 pr-3 py-2.5 md:py-2 bg-slate-50 dark:bg-white/5 border-none rounded-md md:rounded-md text-xs focus:ring-2 focus:ring-blue-500 transition-all ring-1 ring-slate-200 dark:ring-white/10 dark:text-white">
+                class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-md text-xs font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 shadow-sm"
+              />
+            </div>
+
+            <!-- Type Toggle -->
+            <div class="bg-slate-50 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-white/5 flex items-center gap-1.5 w-full md:w-auto shrink-0 shadow-sm">
+              <button 
+                @click="barcodeType ='CODE128'"
+                :class="[barcodeType ==='CODE128' ?'bg-blue-600 text-white shadow-md' :'text-slate-500 hover:bg-white dark:hover:bg-slate-700','flex-1 md:flex-none px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all']"
+              >
+                Barcode
+              </button>
+              <button 
+                @click="barcodeType ='QR'"
+                :class="[barcodeType ==='QR' ?'bg-blue-600 text-white shadow-md' :'text-slate-500 hover:bg-white dark:hover:bg-slate-700','flex-1 md:flex-none px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all']"
+              >
+                QR Code
+              </button>
             </div>
           </div>
 
@@ -230,7 +232,7 @@ const printBarcodes = () => {
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-white/5">
-                <tr v-for="product in products.data" :key="product.id" class="hover:bg-slate-50 dark:hover:bg-white/[0.02]">
+                <tr v-for="product in filteredProducts" :key="product.id" class="hover:bg-slate-50 dark:hover:bg-white/[0.02]">
                   <td class="px-4 sm:px-6 py-4">
                     <p class="font-bold text-slate-900 dark:text-white text-sm capitalize">{{ product.nama_produk }}</p>
                     <p class="text-[10px] text-slate-500 font-mono mt-0.5">{{ product.kode_produk }}</p>
@@ -256,26 +258,29 @@ const printBarcodes = () => {
                     </div>
                   </td>
                 </tr>
-                <tr v-if="products.data.length === 0">
+                <tr v-if="filteredProducts.length === 0">
                   <td colspan="3" class="px-6 py-12 text-center text-slate-500">
                     Tidak ada produk ditemukan.
                   </td>
                 </tr>
               </tbody>
             </table>
-            <!-- Pagination -->
-            <div class="px-6 py-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-end gap-6 bg-slate-50/50 dark:bg-white/[0.02]">
-              <div class="flex items-center gap-2 mr-auto">
-                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Baris:</span>
-                <select v-model="perPage" class="bg-white dark:bg-slate-800 border-none rounded-md text-[11px] font-bold text-slate-700 dark:text-slate-300 ring-1 ring-slate-200 dark:ring-white/10 focus:ring-2 focus:ring-blue-500 py-1.5 pl-3 pr-8 w-20 cursor-pointer">
-                  <option v-for="n in [5, 10, 15, 20, 50]" :key="n" :value="n">{{ n }}</option>
-                </select>
+            <!-- Pagination & Per Page -->
+            <div class="px-6 py-4 border-t border-slate-100 dark:border-white/5 flex flex-col lg:flex-row items-center justify-between gap-6 bg-slate-50/30 dark:bg-white/[0.01]">
+              <div class="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 order-2 lg:order-1">
+                <p class="text-xs text-slate-500 font-medium whitespace-nowrap">
+                  Menampilkan <span class="font-bold text-slate-900 dark:text-white">{{ products.from || 0 }}-{{ products.to || 0 }}</span> dari <span class="font-bold text-slate-900 dark:text-white">{{ products.total || 0 }}</span> produk
+                </p>
+                <div class="flex items-center gap-2 border-l border-slate-200 dark:border-white/10 pl-4 h-5">
+                  <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Baris:</span>
+                  <select v-model="perPage" class="bg-transparent border-none p-0 text-[11px] font-black text-slate-700 dark:text-slate-300 focus:ring-0 cursor-pointer min-w-[40px]">
+                    <option v-for="n in [5, 10, 15, 20, 50]" :key="n" :value="n" class="bg-white dark:bg-slate-900 font-sans font-normal">{{ n }}</option>
+                  </select>
+                </div>
               </div>
-              
-              <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider hidden sm:block">
-                Menampilkan {{ products.from || 0 }}-{{ products.to || 0 }} dari {{ products.total || 0 }}
-              </p>
-              <Pagination :links="products.links" />
+              <div class="order-1 lg:order-2 w-full lg:w-auto flex justify-center">
+                <Pagination :links="products.links" />
+              </div>
             </div>
           </div>
         </div>
@@ -356,7 +361,7 @@ const printBarcodes = () => {
             </div>
 
             <div class="space-y-3 max-h-[300px] overflow-y-auto pr-2" style="scrollbar-width: thin;">
-              <div v-for="(item, index) in printList" :key="index" class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm relative group transition-all hover:border-blue-500/50">
+              <div v-for="(item, index) in printList" :key="index" class="bg-white dark:bg-slate-800 p-4 rounded-md border border-slate-200 dark:border-white/10 shadow-sm relative group transition-all hover:border-blue-500/50">
                 <div class="flex items-start gap-3">
                   <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-800/50 text-blue-600 dark:text-blue-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -392,29 +397,31 @@ const printBarcodes = () => {
               <span class="text-[9px] bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded font-black uppercase tracking-wider">Skala Layar</span>
             </h3>
             <div class="overflow-x-auto p-3 bg-slate-50 dark:bg-slate-950 rounded-xl max-h-[400px] scrollbar-thin">
-              <div class="grid gap-2 justify-start mx-auto" :style="{
-                gridTemplateColumns: printColumns === 1 ?'1fr' : `repeat(${printColumns}, ${labelWidth * 1.5}px)`,
+              <div class="grid gap-3 justify-start mx-auto p-2" :style="{
+                gridTemplateColumns: printColumns === 1 ? '1fr' : `repeat(${printColumns}, ${labelWidth * 3}px)`,
               }">
                 <template v-for="(item, index) in printList" :key="'preview-'+index">
                   <div v-for="i in item.qty" :key="'preview-'+index+'-'+i" :style="{
-                    width: (labelWidth * 1.5) +'px',
-                    height: (labelHeight * 1.5) +'px',
-                  }" class="flex flex-col items-center justify-center border border-dashed border-slate-300 dark:border-white/10 bg-white dark:bg-slate-900 p-1.5 text-center overflow-hidden shrink-0 select-none">
-                    <p v-if="showName" class="text-[8px] font-black truncate w-full text-slate-900 dark:text-white capitalize leading-none mb-0.5">{{ item.nama_produk }}</p>
-                    <p v-if="showPrice" class="text-[8px] font-bold text-blue-600 dark:text-blue-400 leading-none mb-1">{{ formatPrice(item.harga) }}</p>
+                    width: (labelWidth * 3) + 'px',
+                    height: (labelHeight * 3) + 'px',
+                  }" class="flex flex-col items-center justify-center border border-dashed border-slate-300 dark:border-white/10 bg-white dark:bg-slate-900 p-2 text-center overflow-hidden shrink-0 select-none">
+                    <p v-if="showName" class="text-xs font-black truncate w-full text-slate-900 dark:text-white capitalize leading-none mb-1">{{ item.nama_produk }}</p>
+                    <p v-if="showPrice" class="text-[10px] font-bold text-blue-600 dark:text-blue-400 leading-none mb-1">{{ formatPrice(item.harga) }}</p>
                     
                     <!-- Barcode/QR Placeholder -->
-                    <div v-if="barcodeType ==='CODE128'" class="w-full flex justify-center py-0.5">
-                      <div class="h-6 w-5/6 bg-slate-100 dark:bg-slate-800 flex flex-col justify-between p-0.5">
-                        <div class="w-full h-full flex gap-px bg-white dark:bg-slate-900 overflow-hidden">
-                          <div v-for="n in 25" :key="n" :style="{ width: (n % 3 === 0 ?'2px' :'1px') }" class="h-full bg-slate-800 dark:bg-slate-300"></div>
+                    <div v-if="barcodeType === 'CODE128'" class="w-full flex justify-center py-1 flex-1 min-h-0">
+                      <div class="h-full min-h-[20px] max-h-[50px] w-5/6 bg-slate-100 dark:bg-slate-800 flex flex-col justify-between p-0.5">
+                        <div class="w-full h-full flex gap-px bg-white dark:bg-slate-900 overflow-hidden justify-center">
+                          <div v-for="n in 35" :key="n" :style="{ width: (n % 3 === 0 ? '3px' : (n % 2 === 0 ? '2px' : '1px')) }" class="h-full bg-slate-800 dark:bg-slate-300"></div>
                         </div>
                       </div>
                     </div>
-                    <div v-else class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200">
-                       <img :src="`https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${item.kode_produk}`" class="w-6 h-6" />
+                    <div v-else class="flex-1 min-h-0 flex items-center justify-center py-1">
+                      <div class="aspect-square h-full max-h-[60px] flex items-center justify-center bg-white border border-slate-200 p-1">
+                         <img :src="`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${item.kode_produk}`" class="w-full h-full object-contain" />
+                      </div>
                     </div>
-                    <p v-if="showCodeText" class="text-[7px] font-mono text-slate-500 dark:text-slate-400 mt-1 truncate w-full leading-none">{{ item.kode_produk }}</p>
+                    <p v-if="showCodeText" class="text-[9px] font-mono text-slate-500 dark:text-slate-400 mt-1 truncate w-full leading-none">{{ item.kode_produk }}</p>
                   </div>
                 </template>
               </div>

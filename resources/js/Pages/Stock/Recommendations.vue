@@ -5,7 +5,11 @@ import { ref, computed } from'vue';
 
 const props = defineProps({
   lowStock: Array,
-  recommendations: Array
+  recommendations: Array,
+  sma_periode: {
+    type: Number,
+    default: 7
+  }
 });
 
 const searchQuery = ref('');
@@ -115,7 +119,7 @@ const stats = computed(() => {
       </div>
 
       <!-- Bento Row: SMA formula explanation -->
-      <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-md flex flex-col justify-between min-h-[160px]">
+      <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-md p-6 md:p-8 text-white relative overflow-hidden shadow-md flex flex-col justify-between min-h-[160px]">
         <div class="absolute top-0 right-0 p-8 opacity-10">
           <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24">
             <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -124,13 +128,13 @@ const stats = computed(() => {
         <div class="relative z-10 max-w-4xl">
           <h3 class="text-base md:text-lg font-black mb-2 tracking-tight uppercase">Metode Prediksi Single Moving Average (SMA)</h3>
           <p class="text-xs md:text-sm text-blue-100 leading-relaxed">
-            Sistem memperkirakan kebutuhan stok periode berikutnya dengan menghitung rata-rata penjualan riil dari 3 periode mingguan terakhir secara terus menerus: 
-            <span class="font-mono bg-white/10 px-2 py-0.5 rounded text-[11px] font-black text-white ml-1">SMA = (W1 + W2 + W3) / 3</span>.
+            Sistem memperkirakan kebutuhan stok periode berikutnya dengan menghitung rata-rata penjualan riil dari 3 periode ({{ sma_periode }} harian) terakhir secara terus menerus: 
+            <span class="font-mono bg-white/10 px-2 py-0.5 rounded text-[11px] font-black text-white ml-1">SMA = (P1 + P2 + P3) / 3</span>.
             Jika stok sekarang lebih rendah dari prediksi permintaan SMA, sistem menyarankan jumlah pengadaan tambahan yang ideal.
           </p>
         </div>
         <div class="text-[9px] text-blue-200 font-bold uppercase tracking-widest mt-4">
-          *W1 = 7 hari terakhir | W2 = hari 8-14 lalu | W3 = hari 15-21 lalu
+          *P1 = {{ sma_periode }} hari terakhir | P2 = hari {{ sma_periode + 1 }}-{{ sma_periode * 2 }} lalu | P3 = hari {{ sma_periode * 2 + 1 }}-{{ sma_periode * 3 }} lalu
         </div>
       </div>
 
@@ -204,13 +208,13 @@ const stats = computed(() => {
               v-model="searchQuery" 
               type="text" 
               placeholder="Cari nama atau kode produk..." 
-              class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-2xl text-xs font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300"
+              class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-md text-xs font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300"
             />
           </div>
         </div>
 
         <!-- Table Card Container -->
-        <div class="bg-white dark:bg-slate-900 rounded-3xl md:rounded-md border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
           <!-- Empty State -->
           <div v-if="filteredRecommendations.length === 0" class="px-6 py-16 text-center">
             <svg class="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,7 +230,7 @@ const stats = computed(() => {
                 <tr>
                   <th class="px-6 py-4">Produk</th>
                   <th class="px-6 py-4 text-center">Stok / Min</th>
-                  <th class="px-6 py-4 text-center">Histori Penjualan (W3 - W2 - W1)</th>
+                  <th class="px-6 py-4 text-center">Histori Penjualan (P3 - P2 - P1)</th>
                   <th class="px-6 py-4 text-center">Prediksi (SMA)</th>
                   <th class="px-6 py-4 text-center">Status</th>
                   <th class="px-6 py-4 text-center">Rekomendasi Restok</th>
@@ -296,7 +300,7 @@ const stats = computed(() => {
           <div class="md:hidden divide-y divide-slate-100 dark:divide-white/5">
             <div v-for="p in filteredRecommendations" :key="'rec-'+p.id" class="p-5 space-y-4">
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 overflow-hidden shrink-0 border border-slate-200 dark:border-white/10 shadow-sm">
+                <div class="w-12 h-12 rounded-md bg-slate-100 dark:bg-white/5 overflow-hidden shrink-0 border border-slate-200 dark:border-white/10 shadow-sm">
                   <img v-if="p.gambar" :src="p.gambar" class="w-full h-full object-cover" />
                 </div>
                 <div class="min-w-0 flex-1">
@@ -314,13 +318,13 @@ const stats = computed(() => {
                 </span>
               </div>
               
-              <div class="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-white/[0.02] p-3 rounded-2xl border border-slate-100 dark:border-white/5 text-center">
+              <div class="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-white/[0.02] p-3 rounded-md border border-slate-100 dark:border-white/5 text-center">
                 <div>
                   <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Stok / Min</p>
                   <p class="text-xs font-black text-slate-800 dark:text-slate-200 mt-0.5">{{ p.stok }} / {{ p.stok_minimal }}</p>
                 </div>
                 <div>
-                  <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Histori (W3-W1)</p>
+                  <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Histori (P3-P1)</p>
                   <p class="text-xs font-bold text-slate-600 dark:text-slate-400 mt-0.5">{{ p.sales_w3 }}, {{ p.sales_w2 }}, {{ p.sales_w1 }}</p>
                 </div>
                 <div>

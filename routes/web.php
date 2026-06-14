@@ -49,8 +49,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
         Route::delete('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
         Route::get('/transactions', [TransaksiController::class, 'index'])->name('transactions.index');
-        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::get('/payments/{id}', [PaymentController::class, 'show'])->name('payments.show');
+        Route::post('/payments/{id}/cancel', [PaymentController::class, 'cancel'])->name('payments.cancel');
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('password.update');

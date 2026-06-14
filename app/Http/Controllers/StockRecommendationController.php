@@ -12,10 +12,13 @@ class StockRecommendationController extends Controller
 {
     public function index()
     {
+        $setting = \App\Models\Setting::first();
+        $sma_periode = $setting && $setting->sma_periode ? (int) $setting->sma_periode : 7;
+
         $now = now();
-        $w1_start = $now->copy()->subDays(7);
-        $w2_start = $now->copy()->subDays(14);
-        $w3_start = $now->copy()->subDays(21);
+        $w1_start = $now->copy()->subDays($sma_periode);
+        $w2_start = $now->copy()->subDays($sma_periode * 2);
+        $w3_start = $now->copy()->subDays($sma_periode * 3);
 
         // Fetch sales data grouped by product for the last 3 weeks (Week 1, Week 2, Week 3)
         $salesData = DetailTransaksi::join('transaksi', 'detail_transaksi.transaksi_id', '=', 'transaksi.id')
@@ -74,6 +77,7 @@ class StockRecommendationController extends Controller
         return Inertia::render('Stock/Recommendations', [
             'recommendations' => $recommendations->values()->all(),
             'lowStock' => $recommendations->where('status', 'Kritis')->values()->all(),
+            'sma_periode' => $sma_periode,
         ]);
     }
 }

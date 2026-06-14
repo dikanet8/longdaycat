@@ -28,6 +28,8 @@ class POSController extends Controller
         $request->validate([
             'items' => 'required|array',
             'total_harga' => 'required|numeric',
+            'subtotal' => 'nullable|numeric',
+            'diskon' => 'nullable|numeric',
             'metode_bayar' => 'required|string',
             'jumlah_bayar' => 'required|numeric|min:'.$request->total_harga,
         ]);
@@ -38,6 +40,8 @@ class POSController extends Controller
                 'users_id' => $request->user()->id,
                 'kode_transaksi' => 'TRX-' . strtoupper(Str::random(8)),
                 'tanggal' => now(),
+                'subtotal' => $request->subtotal ?? $request->total_harga,
+                'diskon' => $request->diskon ?? 0,
                 'total_harga' => $request->total_harga,
                 'metode_bayar' => $request->metode_bayar,
                 'status' => 'selesai'

@@ -15,6 +15,8 @@ class Transaksi extends Model
         'kode_transaksi',
         'tanggal',
         'users_id',
+        'subtotal',
+        'diskon',
         'total_harga',
         'metode_bayar',
         'status',
@@ -28,5 +30,10 @@ class Transaksi extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'users_id');
+    }
+
+    public function pembayaran()
+    {
+        return $this->hasOne(Pembayaran::class, 'transaksi_id');
     }
 }

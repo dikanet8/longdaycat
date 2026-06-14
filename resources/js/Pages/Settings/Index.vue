@@ -12,6 +12,7 @@ const form = useForm({
   alamat_toko: props.setting?.alamat_toko || '',
   telepon_toko: props.setting?.telepon_toko || '',
   deskripsi_struk: props.setting?.deskripsi_struk || '',
+  sma_periode: props.setting?.sma_periode || 7,
   logo_toko: null,
   _method: 'POST'
 });
@@ -55,14 +56,14 @@ const submit = () => {
       </div>
 
       <!-- Main Form Area -->
-      <div class="bg-white dark:bg-slate-900 rounded-3xl md:rounded-xl shadow-sm border border-slate-200 dark:border-white/5 overflow-hidden">
+      <div class="bg-white dark:bg-slate-900 rounded-md md:rounded-xl shadow-sm border border-slate-200 dark:border-white/5 overflow-hidden">
         <form @submit.prevent="submit" class="p-6 md:p-8 space-y-8">
           
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Left Column: Logo -->
             <div class="lg:col-span-1 space-y-4">
               <label class="block text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Logo Toko</label>
-              <div class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 dark:border-white/10 rounded-2xl md:rounded-xl bg-slate-50 dark:bg-slate-800/50 group hover:border-blue-500 transition-colors relative overflow-hidden">
+              <div class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 dark:border-white/10 rounded-md md:rounded-xl bg-slate-50 dark:bg-slate-800/50 group hover:border-blue-500 transition-colors relative overflow-hidden">
                 <template v-if="logoPreview">
                   <img :src="logoPreview" alt="Logo Preview" class="w-32 h-32 object-contain rounded-xl shadow-sm bg-white dark:bg-slate-900 mb-4" />
                 </template>
@@ -137,6 +138,22 @@ const submit = () => {
                   placeholder="Misal: Terima kasih atas kunjungan Anda!"
                 ></textarea>
                 <p v-if="form.errors.deskripsi_struk" class="text-rose-500 text-xs font-bold mt-1">{{ form.errors.deskripsi_struk }}</p>
+              </div>
+
+              <!-- SMA Period -->
+              <div>
+                <label class="block text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider mb-2">Periode Perhitungan SMA (Hari)</label>
+                <input 
+                  v-model="form.sma_periode"
+                  type="number" 
+                  min="1"
+                  max="365"
+                  class="w-full bg-slate-50 dark:bg-white/5 border-none rounded-xl py-3 px-4 text-sm font-medium text-slate-700 dark:text-slate-200 ring-1 ring-slate-200 dark:ring-white/10 focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-400"
+                  placeholder="Misal: 7"
+                  required
+                >
+                <p class="text-[10px] text-slate-500 mt-1.5 font-medium leading-relaxed">Digunakan sebagai rentang hari ke belakang untuk perhitungan rekomendasi stok produk.</p>
+                <p v-if="form.errors.sma_periode" class="text-rose-500 text-xs font-bold mt-1">{{ form.errors.sma_periode }}</p>
               </div>
 
             </div>

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('telepon_toko')->nullable();
             $table->text('deskripsi_struk')->nullable();
             $table->string('logo_toko')->nullable();
+            $table->integer('sma_periode')->default(7)->after('logo_toko');
             $table->timestamps();
         });
     }

@@ -19,6 +19,7 @@ class SettingController extends Controller
                 'alamat_toko' => '',
                 'telepon_toko' => '',
                 'deskripsi_struk' => 'Terima kasih atas kunjungan Anda!',
+                'sma_periode' => 7,
             ]);
         }
 
@@ -36,7 +37,8 @@ class SettingController extends Controller
             'alamat_toko' => 'nullable|string',
             'telepon_toko' => 'nullable|string|max:50',
             'deskripsi_struk' => 'nullable|string',
-            'logo_toko' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+            'logo_toko' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'sma_periode' => 'required|integer|min:1|max:365'
         ]);
 
         if ($request->hasFile('logo_toko')) {

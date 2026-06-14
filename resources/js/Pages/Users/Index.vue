@@ -264,7 +264,7 @@ const formatDate = (date) => {
               </div>
               
               <div class="flex items-center gap-2">
-                <button @click="openUserModal(user)" class="p-2.5 bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-md border border-slate-100 dark:border-white/5 transition-all active:scale-95">
+                <button @click="openUserModal(user)" class="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all active:scale-95">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
@@ -272,7 +272,7 @@ const formatDate = (date) => {
                 <button 
                   v-if="user.id !== $page.props.auth.user.id"
                   @click="openDeleteModal(user)" 
-                  class="p-2.5 bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-md border border-slate-100 dark:border-white/5 transition-all active:scale-95"
+                  class="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-all active:scale-95"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -322,7 +322,7 @@ const formatDate = (date) => {
             leave-from-class="opacity-100 translate-y-0 sm:scale-100"
             leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
           >
-            <div v-if="isDeleteModalOpen" class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col">
+            <div v-if="isDeleteModalOpen" class="relative bg-white dark:bg-slate-900 rounded-md shadow-xl w-full max-w-sm overflow-hidden flex flex-col">
               <!-- Header -->
               <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-3">
@@ -385,7 +385,7 @@ const formatDate = (date) => {
             leave-from-class="opacity-100 translate-y-0 sm:scale-100"
             leave-to-class="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95"
           >
-            <div v-if="isUserModalOpen" class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div v-if="isUserModalOpen" class="relative bg-white dark:bg-slate-900 rounded-md shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
               <!-- Header -->
               <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-3">

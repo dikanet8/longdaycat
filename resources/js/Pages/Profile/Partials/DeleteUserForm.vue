@@ -34,7 +34,7 @@ const closeModal = () => {
 
 <template>
   <section>
-    <div class="p-6 bg-red-50 border border-red-200 rounded-xl">
+    <div class="p-6 bg-red-50 dark:bg-red-500/5 border border-red-200 dark:border-red-900/30 rounded-md">
       <h4 class="text-base font-bold text-red-800 mb-2">Hapus Akun Permanen</h4>
       <p class="text-sm text-red-700 mb-6 leading-relaxed">
         Setelah akun Anda dihapus, semua sumber daya dan data di dalamnya akan dihapus secara permanen. Sebelum menghapus akun Anda, harap unduh data atau informasi apa pun yang ingin Anda simpan.
@@ -42,7 +42,7 @@ const closeModal = () => {
 
       <button 
         @click="confirmUserDeletion"
-        class="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-red-600/10 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+        class="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-md transition-all shadow-md shadow-red-600/10 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -74,7 +74,7 @@ const closeModal = () => {
               ref="passwordInput"
               v-model="form.password"
               type="password"
-              class="block w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-slate-800 text-sm transition-all shadow-sm"
+              class="block w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border-none rounded-md focus:outline-none focus:ring-2 focus:ring-red-500/50 text-slate-800 dark:text-white text-sm transition-all shadow-sm ring-1 ring-slate-200 dark:ring-white/10"
               placeholder="Kata sandi Anda"
               @keyup.enter="deleteUser"
             />
@@ -85,7 +85,7 @@ const closeModal = () => {
         <div class="mt-8 flex items-center justify-end gap-3">
           <button 
             @click="closeModal"
-            class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all active:scale-[0.98] cursor-pointer"
+            class="px-5 py-2.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-bold text-sm rounded-md transition-all active:scale-[0.98] cursor-pointer"
           >
             Batal
           </button>
@@ -93,7 +93,7 @@ const closeModal = () => {
           <button 
             @click="deleteUser"
             :disabled="form.processing"
-            class="px-6 py-2.5 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-red-600/10 active:scale-[0.98] flex items-center gap-2 cursor-pointer"
+            class="px-6 py-2.5 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold text-sm rounded-md transition-all shadow-md shadow-red-600/10 active:scale-[0.98] flex items-center gap-2 cursor-pointer"
           >
             <svg v-if="form.processing" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

@@ -44,21 +44,14 @@ class ProductController extends Controller
 
         return Inertia::render('Products/Index', [
             'products' => $products,
+            'categories' => Kategori::orderBy('nama_kategori')->get(),
             'filters' => [
                 'per_page' => (int)$perPage
             ]
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return Inertia::render('Products/Create', [
-            'categories' => Kategori::orderBy('nama_kategori')->get()
-        ]);
-    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -93,17 +86,7 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('message', 'Produk berhasil ditambahkan!');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        $produk = Produk::findOrFail($id);
-        return Inertia::render('Products/Edit', [
-            'product' => $produk,
-            'categories' => Kategori::orderBy('nama_kategori')->get()
-        ]);
-    }
+
 
     /**
      * Update the specified resource in storage.

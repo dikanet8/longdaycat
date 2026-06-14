@@ -23,7 +23,7 @@ const submit = () => {
     <div class="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
     <div class="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
 
-    <div class="relative w-full max-w-md bg-white/5 border border-white/10 p-8 rounded-3xl shadow-2xl overflow-hidden group">
+    <div class="relative w-full max-w-md bg-white/5 border border-white/10 p-8 rounded-md shadow-2xl overflow-hidden group">
       <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
       <div class="relative">

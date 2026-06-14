@@ -14,6 +14,7 @@ class Setting extends Model
         'alamat_toko',
         'telepon_toko',
         'deskripsi_struk',
-        'logo_toko'
+        'logo_toko',
+        'sma_periode'
     ];
 }

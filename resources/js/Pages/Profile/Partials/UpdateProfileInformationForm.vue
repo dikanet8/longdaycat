@@ -38,7 +38,7 @@ const form = useForm({
             <input
               id="name"
               type="text"
-              class="block w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 text-sm transition-all shadow-sm"
+              class="block w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border-none rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-800 dark:text-white text-sm transition-all shadow-sm ring-1 ring-slate-200 dark:ring-white/10"
               v-model="form.name"
               required
               autofocus
@@ -61,7 +61,7 @@ const form = useForm({
             <input
               id="email"
               type="email"
-              class="block w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 text-sm transition-all shadow-sm"
+              class="block w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border-none rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-800 dark:text-white text-sm transition-all shadow-sm ring-1 ring-slate-200 dark:ring-white/10"
               v-model="form.email"
               required
               autocomplete="username"
@@ -86,7 +86,7 @@ const form = useForm({
             :href="route('verification.send')"
             method="post"
             as="button"
-            class="mt-3 inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-amber-600/10"
+            class="mt-3 inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-md transition-all shadow-md shadow-amber-600/10"
           >
             Kirim Ulang Link Verifikasi
           </Link>
@@ -104,7 +104,7 @@ const form = useForm({
         <button 
           type="submit"
           :disabled="form.processing"
-          class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-blue-500/10 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+          class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-sm rounded-md transition-all shadow-md shadow-blue-500/10 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
         >
           <svg v-if="form.processing" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

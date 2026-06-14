@@ -95,12 +95,30 @@ const showMobileFilters = ref(false);
 const paymentForm = useForm({
   items: [],
   total_harga: 0,
-  metode_bayar:'cash',
+  subtotal: 0,
+  diskon: 0,
+  metode_bayar: 'cash',
   jumlah_bayar: 0
 });
 
-const totalPrice = computed(() => {
+const subtotal = computed(() => {
   return cart.value.reduce((sum, item) => sum + (item.harga * item.quantity), 0);
+});
+
+const diskon = ref(0);
+
+const formattedDiskon = computed({
+  get() {
+    return diskon.value === 0 ? '' : new Intl.NumberFormat('id-ID').format(diskon.value);
+  },
+  set(value) {
+    const val = String(value).replace(/\D/g, '');
+    diskon.value = val ? parseInt(val, 10) : 0;
+  }
+});
+
+const totalPrice = computed(() => {
+  return Math.max(0, subtotal.value - diskon.value);
 });
 
 const totalItems = computed(() => {
@@ -112,9 +130,21 @@ const kembalian = computed(() => {
   return val > 0 ? val : 0;
 });
 
+const formattedJumlahBayar = computed({
+  get() {
+    return paymentForm.jumlah_bayar === 0 ? '' : new Intl.NumberFormat('id-ID').format(paymentForm.jumlah_bayar);
+  },
+  set(value) {
+    const val = String(value).replace(/\D/g, '');
+    paymentForm.jumlah_bayar = val ? parseInt(val, 10) : 0;
+  }
+});
+
 const openPaymentModal = () => {
   if (cart.value.length === 0) return;
   paymentForm.items = cart.value;
+  paymentForm.subtotal = subtotal.value;
+  paymentForm.diskon = diskon.value;
   paymentForm.total_harga = totalPrice.value;
   paymentForm.jumlah_bayar = 0;
   showPaymentModal.value = true;
@@ -125,6 +155,7 @@ const processPayment = () => {
     onSuccess: () => {
       showPaymentModal.value = false;
       cart.value = [];
+      diskon.value = 0;
     }
   });
 };
@@ -406,7 +437,7 @@ const formatPrice = (price) => {
 
         <!-- Product Grid -->
         <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-          <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4 pb-4">
+          <div v-if="filteredProducts.length > 0" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4 pb-4">
             <div 
               v-for="product in filteredProducts" 
               :key="product.id"
@@ -441,10 +472,21 @@ const formatPrice = (price) => {
                 <h4 class="font-bold text-slate-900 dark:text-white truncate text-sm lg:text-base capitalize">{{ product.nama_produk }}</h4>
                 <div class="flex items-center justify-between mt-1">
                   <span class="text-blue-600 dark:text-blue-400 font-black text-xs lg:text-sm">{{ formatPrice(product.harga) }}</span>
-                  <span class="text-[9px] lg:text-[10px] text-slate-400 font-mono uppercase">{{ product.ukuran }}</span>
+                  <span class="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 font-mono uppercase bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-sm">{{ product.ukuran }}</span>
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Empty State -->
+          <div v-else class="flex flex-col items-center justify-center h-full min-h-[50vh] text-center p-8">
+            <div class="w-24 h-24 mb-4 text-slate-300 dark:text-slate-600">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-black text-slate-700 dark:text-white uppercase tracking-tight mb-1">Tidak Ada Produk</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Produk tidak ditemukan untuk kategori atau pencarian ini.</p>
           </div>
         </div>
       </div>
@@ -452,7 +494,7 @@ const formatPrice = (price) => {
       <!-- RIGHT: CART SUMMARY (Desktop) & MODAL (Mobile) -->
       <div 
         :class="[
-         'fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] lg:bottom-0 z-50 lg:relative lg:inset-auto lg:z-0 lg:w-[400px] flex flex-col bg-white dark:bg-slate-900 lg: rounded-t-sm lg:rounded-sm shadow-2xl lg:shadow-xl border-t lg:border border-slate-100 dark:border-white/5 transition-transform duration-500 ease-in-out lg:translate-y-0',
+         'fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] lg:bottom-0 z-50 lg:relative lg:inset-auto lg:z-0 lg:w-[400px] flex flex-col bg-white dark:bg-slate-900 lg: rounded-t-sm lg:rounded-sm shadow-2xl lg:shadow-none border-t lg:border-2 border-slate-200 dark:border-slate-800 transition-transform duration-500 ease-in-out lg:translate-y-0',
           isCartOpen ?'translate-y-0 h-[85vh]' :'translate-y-full lg:h-full'
         ]"
       >
@@ -514,7 +556,19 @@ const formatPrice = (price) => {
           <div class="space-y-2">
             <div class="flex justify-between text-slate-500 dark:text-slate-400 text-xs">
               <span>Subtotal</span>
-              <span class="font-bold">{{ formatPrice(totalPrice) }}</span>
+              <span class="font-bold">{{ formatPrice(subtotal) }}</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-500 dark:text-slate-400 text-xs border-b border-slate-100 dark:border-white/5 pb-3 pt-1">
+              <span>Diskon</span>
+              <div class="relative w-32">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 text-[11px] font-bold text-slate-400 pointer-events-none">Rp</span>
+                <input 
+                  type="text" 
+                  v-model="formattedDiskon"
+                  class="w-full text-right pl-7 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md py-1.5 px-2 text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  placeholder="0"
+                />
+              </div>
             </div>
             <div class="flex justify-between text-slate-900 dark:text-white font-black text-lg lg:text-xl pt-2">
               <span>Total</span>
@@ -523,7 +577,7 @@ const formatPrice = (price) => {
           </div>
           <button 
             @click="openPaymentModal"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 rounded-lg shadow-xl shadow-blue-500/20 transition-all active:scale-95 uppercase tracking-widest text-[11px]"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 rounded-lg shadow-xl shadow-blue-500/20 lg:shadow-none transition-all active:scale-95 uppercase tracking-widest text-[11px]"
           >
             Proses Pembayaran
           </button>
@@ -574,7 +628,7 @@ const formatPrice = (price) => {
             leave-from-class="opacity-100 translate-y-0 sm:scale-100"
             leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
           >
-            <div v-if="showPaymentModal" class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div v-if="showPaymentModal" class="relative bg-white dark:bg-slate-900 rounded-md shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
               <!-- Header -->
               <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-3">
@@ -612,58 +666,73 @@ const formatPrice = (price) => {
                     Tunai
                   </button>
                   <button 
-                    @click="paymentForm.metode_bayar = 'qris'"
+                    @click="paymentForm.metode_bayar = 'qris'; paymentForm.jumlah_bayar = totalPrice"
                     :class="[paymentForm.metode_bayar === 'qris' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700', 'flex items-center justify-center gap-2 py-3 rounded-lg transition-all font-bold text-sm active:scale-95']"
                   >
                     QRIS
                   </button>
                 </div>
 
-                <!-- Amount Input -->
-                <div class="space-y-2">
-                  <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Jumlah Bayar</label>
-                  <input 
-                    v-model="paymentForm.jumlah_bayar"
-                    type="number" 
-                    class="w-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-blue-600 rounded-lg py-4 px-6 text-2xl font-black text-slate-900 dark:text-white focus:ring-0 transition-all text-right"
-                    placeholder="0"
-                    @focus="$event.target.select()"
-                  />
-                </div>
+                <!-- Amount Input & Kembalian (CASH ONLY) -->
+                <template v-if="paymentForm.metode_bayar === 'cash'">
+                  <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Jumlah Bayar</label>
+                    <div class="relative">
+                      <span class="absolute inset-y-0 left-0 pl-6 flex items-center text-2xl font-black text-slate-400 pointer-events-none">Rp</span>
+                      <input 
+                        v-model="formattedJumlahBayar"
+                        type="text" 
+                        class="w-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-blue-600 rounded-lg py-4 pl-16 pr-6 text-2xl font-black text-slate-900 dark:text-white focus:ring-0 transition-all text-right"
+                        placeholder="0"
+                        @focus="$event.target.select()"
+                      />
+                    </div>
+                  </div>
 
-                <!-- Quick Amounts -->
-                <div class="grid grid-cols-3 gap-3">
-                  <button 
-                    @click="paymentForm.jumlah_bayar = totalPrice"
-                    class="px-2 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-100 rounded-lg text-xs font-bold transition-all active:scale-95"
-                  >
-                    UANG PAS
-                  </button>
-                  <button 
-                    v-for="cash in [50000, 100000]" 
-                    :key="cash"
-                    @click="paymentForm.jumlah_bayar = cash"
-                    class="px-2 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-600 hover:text-blue-600 rounded-lg text-xs font-bold transition-all active:scale-95"
-                  >
-                    {{ formatPrice(cash) }}
-                  </button>
-                </div>
+                  <!-- Quick Amounts -->
+                  <div class="grid grid-cols-3 gap-3">
+                    <button 
+                      @click="paymentForm.jumlah_bayar = totalPrice"
+                      class="px-2 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-100 rounded-lg text-xs font-bold transition-all active:scale-95"
+                    >
+                      UANG PAS
+                    </button>
+                    <button 
+                      v-for="cash in [50000, 100000, 150000, 200000, 250000]" 
+                      :key="cash"
+                      @click="paymentForm.jumlah_bayar = cash"
+                      class="px-2 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-600 hover:text-blue-600 rounded-lg text-xs font-bold transition-all active:scale-95"
+                    >
+                      {{ formatPrice(cash) }}
+                    </button>
+                  </div>
 
-                <div class="p-5 rounded-xl border border-yellow-200 dark:border-yellow-900/50 bg-yellow-50 dark:bg-yellow-900/20 flex justify-between items-center">
-                  <p class="text-xs font-bold text-yellow-800 dark:text-yellow-200 uppercase tracking-widest">Kembalian</p>
-                  <p :class="[kembalian > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300', 'text-2xl font-black transition-colors']">{{ formatPrice(kembalian) }}</p>
-                </div>
+                  <div class="p-5 rounded-xl border border-yellow-200 dark:border-yellow-900/50 bg-yellow-50 dark:bg-yellow-900/20 flex justify-between items-center">
+                    <p class="text-xs font-bold text-yellow-800 dark:text-yellow-200 uppercase tracking-widest">Kembalian</p>
+                    <p :class="[kembalian > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300', 'text-2xl font-black transition-colors']">{{ formatPrice(kembalian) }}</p>
+                  </div>
+                </template>
+
+                <!-- QRIS Display -->
+                <template v-else-if="paymentForm.metode_bayar === 'qris'">
+                  <div class="p-6 bg-white dark:bg-slate-800 border-2 border-dashed border-blue-200 dark:border-blue-900/50 rounded-xl flex flex-col items-center justify-center text-center space-y-4">
+                    <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl">
+                      <img :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=QRIS-${totalPrice}`" alt="QRIS Code" class="w-40 h-40 object-contain rounded" />
+                    </div>
+                    <div>
+                      <p class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Scan QRIS untuk Membayar</p>
+                      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Harap pastikan nominal yang dibayar sesuai dengan tagihan.</p>
+                    </div>
+                  </div>
+                </template>
               </div>
 
               <!-- Footer -->
-              <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3 shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
-                <button @click="showPaymentModal = false" class="px-4 py-2 text-sm font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                  Batal
-                </button>
+              <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
                 <button 
                   @click="processPayment"
                   :disabled="paymentForm.processing || paymentForm.jumlah_bayar < totalPrice"
-                  class="px-6 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm shadow-blue-500/20 transition-all disabled:opacity-50 flex items-center gap-2"
+                  class="w-full justify-center py-3 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm shadow-blue-500/20 transition-all disabled:opacity-50 flex items-center gap-2"
                 >
                   {{ paymentForm.processing ? 'Memproses...' : 'Selesaikan' }}
                 </button>
@@ -692,7 +761,7 @@ const formatPrice = (price) => {
               leave-from-class="opacity-100 translate-y-0 sm:scale-100"
               leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <div v-if="showScannerModal" class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+              <div v-if="showScannerModal" class="relative bg-white dark:bg-slate-900 rounded-md shadow-xl w-full max-w-md overflow-hidden flex flex-col">
                 <!-- Header -->
                 <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                   <div class="flex items-center gap-3">
