@@ -162,8 +162,14 @@ const doughnutData = computed(() => {
     methodRevenues[method] = (methodRevenues[method] || 0) + parseFloat(trx.total_harga || 0);
   });
   
+  const total = Object.values(methodRevenues).reduce((acc, curr) => acc + curr, 0);
+  const labelsWithPercentage = Object.entries(methodRevenues).map(([method, value]) => {
+    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+    return `${method} - ${percentage}`;
+  });
+
   return {
-    labels: Object.keys(methodRevenues),
+    labels: labelsWithPercentage,
     datasets: [{
       data: Object.values(methodRevenues),
       backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
