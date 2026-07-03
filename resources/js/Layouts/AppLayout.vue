@@ -266,16 +266,39 @@ const eksekusiNotifikasi = (judul, pesan, url) => {
     body: pesan,
     icon: '/logo.png',
     vibrate: [200, 100, 200],
+    data: { url: url }
   };
 
-  const infoNotif = new Notification(judul, options);
-  infoNotif.onclick = function() {
-    window.focus();
-    if (url) {
-      router.visit(url);
-    }
-    infoNotif.close();
-  };
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(function(registration) {
+      if (registration && typeof registration.showNotification === 'function') {
+        registration.showNotification(judul, options).catch(e => {
+          fallbackNotification(judul, options, url);
+        });
+      } else {
+        fallbackNotification(judul, options, url);
+      }
+    }).catch(e => {
+      fallbackNotification(judul, options, url);
+    });
+  } else {
+    fallbackNotification(judul, options, url);
+  }
+};
+
+const fallbackNotification = (judul, options, url) => {
+  try {
+    const infoNotif = new Notification(judul, options);
+    infoNotif.onclick = function() {
+      window.focus();
+      if (url) {
+        router.visit(url);
+      }
+      infoNotif.close();
+    };
+  } catch (e) {
+    console.warn('Gagal memunculkan notifikasi desktop:', e);
+  }
 };
 
 // Automatically show local notification when a new unread notification arrives via Inertia props
