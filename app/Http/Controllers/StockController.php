@@ -64,24 +64,20 @@ class StockController extends Controller
                 $users = \App\Models\User::all();
                 
                 // Calculate SMA for this product (last 3 weeks)
+                $setting = \App\Models\Setting::first();
+                $sma_periode = $setting && $setting->sma_periode ? (int) $setting->sma_periode : 7;
                 $now = now();
-                $w1_start = $now->copy()->subDays(7);
-                $w2_start = $now->copy()->subDays(14);
-                $w3_start = $now->copy()->subDays(21);
+                $start_date = $now->copy()->subDays($sma_periode);
 
                 $sales = \App\Models\DetailTransaksi::join('transaksi', 'detail_transaksi.transaksi_id', '=', 'transaksi.id')
                     ->where('transaksi.status', 'selesai')
                     ->where('detail_transaksi.kode_produk', $product->kode_produk)
-                    ->where('transaksi.tanggal', '>=', $w3_start)
-                    ->selectRaw('SUM(CASE WHEN transaksi.tanggal >= ? THEN detail_transaksi.jumlah ELSE 0 END) as sales_w1', [$w1_start])
-                    ->selectRaw('SUM(CASE WHEN transaksi.tanggal >= ? AND transaksi.tanggal < ? THEN detail_transaksi.jumlah ELSE 0 END) as sales_w2', [$w2_start, $w1_start])
-                    ->selectRaw('SUM(CASE WHEN transaksi.tanggal >= ? AND transaksi.tanggal < ? THEN detail_transaksi.jumlah ELSE 0 END) as sales_w3', [$w3_start, $w2_start])
+                    ->where('transaksi.tanggal', '>=', $start_date)
+                    ->selectRaw('SUM(detail_transaksi.jumlah) as total_sales')
                     ->first();
 
-                $w1 = $sales ? (int)$sales->sales_w1 : 0;
-                $w2 = $sales ? (int)$sales->sales_w2 : 0;
-                $w3 = $sales ? (int)$sales->sales_w3 : 0;
-                $sma = (int) ceil(($w1 + $w2 + $w3) / 3);
+                $total_sales = $sales ? (int)$sales->total_sales : 0;
+                $sma = (int) ceil($total_sales / max(1, $sma_periode));
 
                 $targetStock = max($product->stok_minimal, $sma);
 

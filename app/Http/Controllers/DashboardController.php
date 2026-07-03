@@ -79,8 +79,12 @@ class DashboardController extends Controller
                 'data' => $chartData
             ],
             'recent_transactions' => Transaksi::where('status', 'selesai')
+                ->when($day, function ($q) use ($day) {
+                    $q->whereDay('tanggal', $day);
+                })
+                ->whereMonth('tanggal', $month)
+                ->whereYear('tanggal', $year)
                 ->orderBy('created_at', 'desc')
-                ->limit(5)
                 ->get(),
             'filters' => [
                 'day' => $day,

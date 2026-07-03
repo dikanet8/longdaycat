@@ -1,8 +1,9 @@
 <script setup>
 import AppLayout from'@/Layouts/AppLayout.vue';
-import { Head, useForm } from'@inertiajs/vue3';
-import { ref, computed, onMounted, onUnmounted, nextTick } from'vue';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from"html5-qrcode";
+import { Head, useForm, usePage, router } from '@inertiajs/vue3';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
+import QrcodeVue from 'qrcode.vue';
 
 const props = defineProps({
   products: Array,
@@ -150,14 +151,81 @@ const openPaymentModal = () => {
   showPaymentModal.value = true;
 };
 
+const showSuccessModal = ref(false);
+const completedTransactionId = ref(null);
+
+const page = usePage();
+
+const showQrisModal = ref(false);
+const isConfirmingQris = ref(false);
+const qrisAmount = ref(0);
+const qrisString = ref('');
+
 const processPayment = () => {
+  const lastTotal = totalPrice.value;
   paymentForm.post(route('pos.checkout'), {
+    preserveScroll: true,
+    preserveState: true,
     onSuccess: () => {
       showPaymentModal.value = false;
       cart.value = [];
       diskon.value = 0;
+      isCartOpen.value = false;
+      
+      const flash = page.props.flash || {};
+      if (flash.completed_transaction_id) {
+        completedTransactionId.value = flash.completed_transaction_id;
+        
+        showSuccessModal.value = true;
+      }
     }
   });
+};
+
+const confirmQrisPayment = () => {
+  if (!completedTransactionId.value) return;
+  isConfirmingQris.value = true;
+  router.post(route('pos.confirm_payment', completedTransactionId.value), {}, {
+    preserveState: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      isConfirmingQris.value = false;
+      showQrisModal.value = false;
+      showSuccessModal.value = true;
+    },
+    onError: () => {
+      isConfirmingQris.value = false;
+    }
+  });
+};
+
+const printReceipt = () => {
+  if (completedTransactionId.value) {
+    const url = route('payments.show', completedTransactionId.value);
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.width = '0px';
+    iframe.style.height = '0px';
+    iframe.style.border = 'none';
+    iframe.style.visibility = 'hidden';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+    
+    iframe.onload = () => {
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (e) {
+        console.error('Print failed', e);
+      }
+    };
+  }
+};
+
+const startNewTransaction = () => {
+  showSuccessModal.value = false;
+  completedTransactionId.value = null;
+  paymentForm.reset();
 };
 
 const handleBarcodeScan = (decodedText) => {
@@ -472,7 +540,10 @@ const formatPrice = (price) => {
                 <h4 class="font-bold text-slate-900 dark:text-white truncate text-sm lg:text-base capitalize">{{ product.nama_produk }}</h4>
                 <div class="flex items-center justify-between mt-1">
                   <span class="text-blue-600 dark:text-blue-400 font-black text-xs lg:text-sm">{{ formatPrice(product.harga) }}</span>
-                  <span class="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 font-mono uppercase bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-sm">{{ product.ukuran }}</span>
+                  <div class="flex items-center gap-1">
+                    <span v-if="product.ukuran" class="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 font-mono uppercase bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-sm">{{ product.ukuran }}</span>
+                    <span v-if="product.warna" class="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 font-mono uppercase bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-sm">{{ product.warna }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -540,7 +611,13 @@ const formatPrice = (price) => {
               </div>
               <div class="flex-1 min-w-0">
                 <h5 class="font-bold text-slate-800 dark:text-white text-xs lg:text-sm truncate capitalize">{{ item.nama_produk }}</h5>
-                <p class="text-[10px] lg:text-xs text-blue-600 dark:text-blue-400 font-bold">{{ formatPrice(item.harga) }}</p>
+                <div class="flex flex-col mt-0.5">
+                  <p class="text-[10px] lg:text-xs text-blue-600 dark:text-blue-400 font-bold">{{ formatPrice(item.harga) }}</p>
+                  <div class="flex items-center gap-1 mt-1">
+                    <span v-if="item.ukuran" class="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-200 dark:bg-slate-700 px-1 rounded-sm">{{ item.ukuran }}</span>
+                    <span v-if="item.warna" class="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-200 dark:bg-slate-700 px-1 rounded-sm">{{ item.warna }}</span>
+                  </div>
+                </div>
               </div>
               <div class="flex items-center gap-2 bg-white dark:bg-slate-950 rounded-sm p-1 shadow-sm border border-slate-100 dark:border-white/5">
                 <button @click="removeFromCart(item.id)" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-sm transition-all font-bold">-</button>
@@ -715,14 +792,12 @@ const formatPrice = (price) => {
 
                 <!-- QRIS Display -->
                 <template v-else-if="paymentForm.metode_bayar === 'qris'">
-                  <div class="p-6 bg-white dark:bg-slate-800 border-2 border-dashed border-blue-200 dark:border-blue-900/50 rounded-xl flex flex-col items-center justify-center text-center space-y-4">
-                    <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl">
-                      <img :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=QRIS-${totalPrice}`" alt="QRIS Code" class="w-40 h-40 object-contain rounded" />
+                  <div class="p-6 bg-white dark:bg-slate-800 border-2 border-dashed border-blue-200 dark:border-blue-900/50 rounded-xl flex flex-col items-center justify-center text-center space-y-2">
+                    <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-full flex items-center justify-center mb-2">
+                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                     </div>
-                    <div>
-                      <p class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Scan QRIS untuk Membayar</p>
-                      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Harap pastikan nominal yang dibayar sesuai dengan tagihan.</p>
-                    </div>
+                    <p class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Metode QRIS Terpilih</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Klik tombol "Selesaikan" di bawah untuk membuat pesanan dan menampilkan kode QRIS.</p>
                   </div>
                 </template>
               </div>
@@ -734,11 +809,125 @@ const formatPrice = (price) => {
                   :disabled="paymentForm.processing || paymentForm.jumlah_bayar < totalPrice"
                   class="w-full justify-center py-3 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm shadow-blue-500/20 transition-all disabled:opacity-50 flex items-center gap-2"
                 >
+                  <svg v-if="paymentForm.processing" class="animate-spin w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                   {{ paymentForm.processing ? 'Memproses...' : 'Selesaikan' }}
                 </button>
               </div>
             </div>
           </Transition>
+          </div>
+        </Transition>
+      </Teleport>
+
+      <!-- QRIS PENDING MODAL -->
+      <Teleport to="body">
+        <Transition
+          enter-active-class="ease-out duration-300"
+          enter-from-class="opacity-0 scale-95"
+          enter-to-class="opacity-100 scale-100"
+          leave-active-class="ease-in duration-200"
+          leave-from-class="opacity-100 scale-100"
+          leave-to-class="opacity-0 scale-95"
+        >
+          <div v-if="showQrisModal" class="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 bg-slate-900/80 backdrop-blur-sm">
+            <Transition
+              enter-active-class="ease-out duration-300"
+              enter-from-class="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95"
+              enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+              leave-active-class="ease-in duration-200"
+              leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+              leave-to-class="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95"
+            >
+              <div v-if="showQrisModal" class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col text-center border border-slate-100 dark:border-white/10">
+                
+                <div class="bg-blue-600 px-6 py-4 flex items-center justify-between">
+                  <h3 class="text-white font-bold text-lg tracking-tight">Menunggu Pembayaran</h3>
+                  <button @click="showQrisModal = false" class="text-blue-100 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+
+                <div class="p-8 space-y-6">
+                  <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl mx-auto inline-block border-2 border-dashed border-blue-200 dark:border-blue-700">
+                    <qrcode-vue v-if="qrisString" :value="qrisString" :size="200" level="H" class="rounded" />
+                    <img v-else :src="`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=QRIS-${qrisAmount}`" alt="QRIS Code" class="w-48 h-48 object-contain rounded" />
+                  </div>
+                  
+                  <div>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium uppercase tracking-widest">Total Tagihan</p>
+                    <p class="text-3xl font-black text-slate-900 dark:text-white">{{ formatPrice(qrisAmount) }}</p>
+                    <p class="text-xs text-rose-500 mt-2 font-semibold">Tolong pastikan pelanggan sudah membayar dengan nominal yang sesuai.</p>
+                  </div>
+
+                  <div class="pt-4 space-y-3">
+                    <button 
+                      @click="confirmQrisPayment"
+                      :disabled="isConfirmingQris"
+                      class="w-full justify-center py-3.5 text-sm font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <svg v-if="!isConfirmingQris" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                      <svg v-else class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      {{ isConfirmingQris ? 'MEMPROSES...' : 'KONFIRMASI SELESAI' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </Transition>
+          </div>
+        </Transition>
+      </Teleport>
+
+      <!-- SUCCESS MODAL -->
+      <Teleport to="body">
+        <Transition
+          enter-active-class="ease-out duration-300"
+          enter-from-class="opacity-0 scale-95"
+          enter-to-class="opacity-100 scale-100"
+          leave-active-class="ease-in duration-200"
+          leave-from-class="opacity-100 scale-100"
+          leave-to-class="opacity-0 scale-95"
+        >
+          <div v-if="showSuccessModal" class="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 bg-slate-900/50">
+            <Transition
+              enter-active-class="ease-out duration-300"
+              enter-from-class="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95"
+              enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+              leave-active-class="ease-in duration-200"
+              leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+              leave-to-class="opacity-0 translate-y-8 sm:translate-y-0 sm:scale-95"
+            >
+              <div v-if="showSuccessModal" class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col text-center border border-slate-100 dark:border-white/10">
+                <div class="p-8 space-y-6">
+                  <div class="mx-auto w-20 h-20 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 mb-2 shadow-inner">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  
+                  <div>
+                    <h3 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Transaksi Berhasil!</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">Pembayaran telah dikonfirmasi dan dicatat ke sistem.</p>
+                  </div>
+
+                  <div class="pt-4 space-y-3">
+                    <button 
+                      @click="printReceipt"
+                      class="w-full justify-center py-3.5 text-sm font-black text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all active:scale-95 flex items-center gap-2"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                      CETAK STRUK
+                    </button>
+                    
+                    <button 
+                      @click="startNewTransaction"
+                      class="w-full justify-center py-3.5 text-sm font-black text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95 border border-slate-200 dark:border-white/5"
+                    >
+                      TRANSAKSI BARU
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </Transition>
           </div>
         </Transition>
       </Teleport>

@@ -12,6 +12,7 @@ class PushSubscriptionController extends Controller
      */
     public function store(Request $request)
     {
+        \Log::info('Menerima request subscription: ', $request->all());
         $request->validate([
             'endpoint'  => 'required|string',
             'p256dh'    => 'required|string',

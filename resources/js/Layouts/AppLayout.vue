@@ -204,24 +204,22 @@ async function subscribePush() {
 
     const subJson = subscription.toJSON();
 
-    // Kirim subscription ke server
-    await fetch('/push/subscribe', {
-      method:'POST',
-      headers: {
-       'Content-Type':'application/json',
-       'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ||'',
-       'X-Requested-With':'XMLHttpRequest',
-      },
-      body: JSON.stringify({
-        endpoint: subJson.endpoint,
-        p256dh: subJson.keys.p256dh,
-        auth: subJson.keys.auth,
-      }),
+    // Kirim subscription ke server menggunakan axios (otomatis menyertakan CSRF token)
+    await axios.post('/push/subscribe', {
+      endpoint: subJson.endpoint,
+      p256dh: subJson.keys.p256dh,
+      auth: subJson.keys.auth,
     });
 
     isPushSubscribed.value = true;
+    showToast.value = true;
+    toastType.value = 'success';
+    toastMessage.value = 'Notifikasi diaktifkan!';
   } catch (e) {
     console.error('Push subscribe error:', e);
+    showToast.value = true;
+    toastType.value = 'error';
+    toastMessage.value = 'Gagal mengaktifkan notif: ' + (e.response?.data?.message || e.message || String(e));
   }
 }
 
@@ -234,14 +232,8 @@ async function unsubscribePush() {
     const endpoint = subscription.endpoint;
     await subscription.unsubscribe();
 
-    await fetch('/push/unsubscribe', {
-      method:'DELETE',
-      headers: {
-       'Content-Type':'application/json',
-       'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ||'',
-       'X-Requested-With':'XMLHttpRequest',
-      },
-      body: JSON.stringify({ endpoint }),
+    await axios.delete('/push/unsubscribe', {
+      data: { endpoint }
     });
 
     isPushSubscribed.value = false;
@@ -249,6 +241,52 @@ async function unsubscribePush() {
     console.error('Push unsubscribe error:', e);
   }
 }
+
+// ─── Local Desktop Notification ───────────────────────────────────────────
+
+const tampilkanNotifikasiLokal = (judul, pesan, url = null) => {
+  if (!("Notification" in window)) {
+    console.warn("Browser Anda tidak mendukung notifikasi desktop.");
+    return;
+  }
+
+  if (Notification.permission === "granted") {
+    eksekusiNotifikasi(judul, pesan, url);
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then(function (permission) {
+      if (permission === "granted") {
+        eksekusiNotifikasi(judul, pesan, url);
+      }
+    });
+  }
+};
+
+const eksekusiNotifikasi = (judul, pesan, url) => {
+  const options = {
+    body: pesan,
+    icon: '/logo.png',
+    vibrate: [200, 100, 200],
+  };
+
+  const infoNotif = new Notification(judul, options);
+  infoNotif.onclick = function() {
+    window.focus();
+    if (url) {
+      router.visit(url);
+    }
+    infoNotif.close();
+  };
+};
+
+// Automatically show local notification when a new unread notification arrives via Inertia props
+watch(() => page.props.auth?.unread_notifications_count, (newCount, oldCount) => {
+  if (newCount > (oldCount || 0)) {
+    const latestNotif = page.props.auth.notifications?.[0];
+    if (latestNotif && !latestNotif.read_at) {
+      tampilkanNotifikasiLokal(latestNotif.data.title, latestNotif.data.message, latestNotif.data.url);
+    }
+  }
+});
 
 const menuGroups = [
   {
@@ -273,7 +311,7 @@ const menuGroups = [
     title:'Laporan',
     items: [
       { name:'Laporan Penjualan', icon:'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', href:'/reports/sales', roles: ['owner'] },
-      { name:'Rekomendasi Stok', icon:'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z', href:'/reports/stock-recommendations', roles: ['owner'] },
+      { name:'Rekomendasi Restok', icon:'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z', href:'/reports/stock-recommendations', roles: ['owner'] },
     ]
   },
   {
@@ -310,6 +348,25 @@ const filteredNavItems = computed(() => {
   const userRole = page.props.auth.user.role;
   return navItems.filter(item => !item.roles || item.roles.includes(userRole));
 });
+
+const pageTitle = computed(() => {
+  const currentPath = page.url.split('?')[0];
+  
+  if (currentPath.startsWith('/payments/')) {
+    return 'Detail Pembayaran';
+  }
+  
+  for (const group of menuGroups) {
+    if (group.items) {
+      for (const item of group.items) {
+        if (currentPath === item.href || (item.href !== '/dashboard' && item.href !== '#' && currentPath.startsWith(item.href))) {
+          return item.name;
+        }
+      }
+    }
+  }
+  return 'Dashboard';
+});
 </script>
 
 <template>
@@ -331,19 +388,17 @@ const filteredNavItems = computed(() => {
       ]"
     >
       <div class="h-16 px-6 flex items-center gap-3 border-b border-slate-100 dark:border-white/5 shrink-0">
-        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
-          <span class="text-white font-bold italic text-xl">L</span>
-        </div>
+        <img src="/logo.png" alt="Logo" class="w-8 h-8 object-contain shrink-0" />
         <span v-if="isSidebarOpen" class="font-bold text-xl tracking-tight text-slate-800 dark:text-white truncate">Longdaycat.Co</span>
       </div>
 
-      <nav class="flex-1 px-3 py-4 space-y-5 overflow-y-auto custom-scrollbar pb-20 md:pb-4">
+      <nav :class="['flex-1 px-3 py-4 overflow-y-auto custom-scrollbar pb-20 md:pb-4', isSidebarOpen ? 'space-y-5' : 'space-y-2']">
         <div v-for="group in filteredMenuGroups" :key="group.title" class="space-y-2">
           <!-- Group Title -->
           <p v-if="isSidebarOpen" class="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 mb-2">
             {{ group.title }}
           </p>
-          <div v-else class="h-4 border-b border-slate-100 dark:border-white/5 mx-4 mb-2"></div>
+          <div v-else class="border-b border-slate-100 dark:border-white/5 mx-3 mb-2"></div>
 
           <!-- Group Items -->
           <div class="space-y-1">
@@ -368,17 +423,6 @@ const filteredNavItems = computed(() => {
         </div>
       </nav>
 
-      <div class="p-4 border-t border-slate-100 dark:border-white/5 md:hidden">
-        <button 
-          @click="logout"
-          class="w-full flex items-center gap-4 px-4 py-2 rounded-xl hover:bg-red-500/10 hover:text-red-500 transition-all text-slate-500"
-        >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          <span v-if="isSidebarOpen" class="font-medium">Logout</span>
-        </button>
-      </div>
     </aside>
 
     <!-- MAIN CONTENT AREA -->
@@ -392,10 +436,11 @@ const filteredNavItems = computed(() => {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <h2 class="text-lg font-semibold text-slate-800 dark:text-white md:block hidden">Dashboard</h2>
+          <h2 class="text-lg font-semibold text-slate-800 dark:text-white md:block hidden">{{ pageTitle }}</h2>
           <!-- Logo for mobile -->
           <div class="md:hidden flex items-center gap-2">
-            <span class="font-black tracking-tight text-lg text-slate-800 dark:text-white">LongDay</span>
+            <img src="/logo.png" alt="Logo" class="w-8 h-8 object-contain shrink-0" />
+            <span class="font-black tracking-tight text-lg text-slate-800 dark:text-white">{{ pageTitle }}</span>
           </div>
         </div>
 

@@ -229,7 +229,7 @@ const chartOptions = {
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-md overflow-hidden shadow-sm flex flex-col relative border-t-4 border-t-purple-600">
           <div class="p-6 border-b border-slate-100 dark:border-white/5">
             <h3 class="font-bold text-lg text-slate-900 dark:text-white">Transaksi Terakhir</h3>
-            <p class="text-xs text-slate-500 font-medium">5 Transaksi terbaru hari ini</p>
+            <p class="text-xs text-slate-500 font-medium">Semua transaksi pada tanggal terpilih</p>
           </div>
           <div class="flex-1 overflow-y-auto">
             <div v-if="recent_transactions.length > 0" class="divide-y divide-slate-100 dark:divide-white/5">
@@ -253,24 +253,21 @@ const chartOptions = {
                 </div>
               </div>
             </div>
-            <div v-else class="h-full flex flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-500">
-              <div class="relative mb-6">
-                <div class="absolute inset-0 bg-blue-500/20 dark:bg-blue-500/10 rounded-full blur-xl animate-pulse"></div>
-                <div class="w-20 h-20 bg-gradient-to-tr from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-800/50 rounded-full flex items-center justify-center relative shadow-lg border border-white dark:border-white/5">
-                  <svg class="w-8 h-8 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                  </svg>
-                </div>
+            <div v-else class="py-16 px-4 flex flex-col items-center justify-center text-center">
+              <div class="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-10 h-10 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
               </div>
-              <h3 class="text-base font-black text-slate-900 dark:text-white tracking-tight mb-1">Belum Ada Transaksi</h3>
-              <p class="text-slate-500 dark:text-slate-400 font-medium text-xs mb-4">Mulai transaksi baru untuk melihat data di sini.</p>
-              <Link href="/pos" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 rounded-full text-xs font-black uppercase tracking-wider transition-all hover:scale-105 hover:shadow-lg shadow-slate-900/20">
+              <h3 class="text-base font-black text-slate-800 dark:text-white mb-1">Belum Ada Transaksi</h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Mulai transaksi baru untuk melihat data di sini.</p>
+              <Link href="/pos" class="mt-5 inline-flex items-center justify-center px-5 py-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-md text-xs font-bold transition-colors">
                 Buka POS
               </Link>
             </div>
           </div>
           <div class="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-white/5">
-            <Link href="/payments" class="flex items-center justify-center gap-2 text-xs font-black text-blue-600 dark:text-blue-400 hover:text-blue-700 uppercase tracking-widest transition-all">
+            <Link href="/transactions" class="flex items-center justify-center gap-2 text-xs font-black text-blue-600 dark:text-blue-400 hover:text-blue-700 uppercase tracking-widest transition-all">
               Lihat Semua Laporan
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />

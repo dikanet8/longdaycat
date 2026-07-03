@@ -15,30 +15,6 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        // Seed some sample data if empty for demonstration
-        if (Produk::count() === 0) {
-            Produk::create([
-                'kode_produk' => 'PRD001',
-                'nama_produk' => 'Kaos Polos Cotton',
-                'gambar' => 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=200',
-                'ukuran' => 'L',
-                'warna' => 'Hitam',
-                'harga' => 75000,
-                'stok' => 100,
-                'stok_minimal' => 10,
-            ]);
-            Produk::create([
-                'kode_produk' => 'PRD002',
-                'nama_produk' => 'Hoodie Premium',
-                'gambar' => 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=200',
-                'ukuran' => 'XL',
-                'warna' => 'Navy',
-                'harga' => 150000,
-                'stok' => 50,
-                'stok_minimal' => 5,
-            ]);
-        }
-
         $perPage = $request->input('per_page', 10);
         $products = Produk::with('kategori')->latest()->paginate($perPage)->withQueryString();
 

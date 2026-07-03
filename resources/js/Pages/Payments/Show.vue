@@ -42,12 +42,8 @@ onMounted(() => {
   <Head :title="'Detail ' + transaction.kode_transaksi" />
 
   <AppLayout>
-    <div class="space-y-8 no-print">
-      <!-- Header removed per user request -->
-
-
-
-      <div class="relative max-w-md mx-auto mt-6">
+    <div class="no-print">
+      <div class="relative max-w-md mx-auto mt-2 lg:-mt-4">
         <!-- Left/Right Ticket Cutouts -->
         <div class="absolute -left-4 top-[140px] w-8 h-8 bg-slate-50 dark:bg-slate-900 rounded-full shadow-inner z-10 hidden sm:block"></div>
         <div class="absolute -right-4 top-[140px] w-8 h-8 bg-slate-50 dark:bg-slate-900 rounded-full shadow-inner z-10 hidden sm:block"></div>
@@ -148,12 +144,7 @@ onMounted(() => {
               </svg>
               Cetak
             </button>
-            <Link href="/pos" class="flex-1 px-3 sm:px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] sm:text-xs uppercase tracking-widest rounded-md transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-              POS Baru
-            </Link>
+
           </div>
         </div>
       </div>

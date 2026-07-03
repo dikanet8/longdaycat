@@ -63,6 +63,21 @@ class PaymentController extends Controller
 
         ActivityLog::log('Pembatalan Transaksi', "Transaksi {$transaction->kode_transaksi} dibatalkan.", $transaction);
 
+        // Send Notification for failed/cancelled transaction
+        try {
+            $users = \App\Models\User::all();
+            foreach ($users as $u) {
+                $u->notify(new \App\Notifications\SystemNotification(
+                    'Transaksi Gagal',
+                    "Transaksi {$transaction->kode_transaksi} telah dibatalkan atau gagal.",
+                    'transaksi',
+                    route('payments.show', $transaction->id)
+                ));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Gagal mengirim notifikasi transaksi gagal: ' . $e->getMessage());
+        }
+
         return redirect()->back()->with('success', 'Transaksi berhasil dibatalkan dan stok dikembalikan.');
     }
 }

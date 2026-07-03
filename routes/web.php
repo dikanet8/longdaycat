@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:owner,kasir')->group(function () {
         Route::get('/pos', [POSController::class, 'index'])->name('pos.index');
         Route::post('/pos/checkout', [POSController::class, 'checkout'])->name('pos.checkout');
+        Route::post('/pos/{id}/confirm-payment', [POSController::class, 'confirmPayment'])->name('pos.confirm_payment');
         Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
         Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
 

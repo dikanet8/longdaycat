@@ -108,34 +108,35 @@ const showMobileFilters = ref(false);
         </div>
       </div>
 
-      <!-- Tab Navigation -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex gap-1 p-1 bg-slate-100 dark:bg-white/5 rounded-md w-full md:w-fit">
-          <button 
-            @click="activeTab ='products'"
-            :class="[activeTab ==='products' ?'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' :'text-slate-500 hover:text-slate-700 dark:hover:text-white']"
-            class="flex-1 md:flex-none px-4 md:px-6 py-2.5 rounded-md text-xs font-bold transition-all"
-          >
-            Kelola Produk
-          </button>
-          <button 
-            @click="activeTab ='history'"
-            :class="[activeTab ==='history' ?'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' :'text-slate-500 hover:text-slate-700 dark:hover:text-white']"
-            class="flex-1 md:flex-none px-4 md:px-6 py-2.5 rounded-md text-xs font-bold transition-all"
-          >
-            Riwayat
-          </button>
+      <div>
+        <!-- Tab Navigation (Styled like Barcode toggle buttons) -->
+        <div class="flex justify-end w-full mb-3">
+          <div class="bg-slate-50 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-white/5 flex items-center gap-1.5 shadow-sm">
+            <button 
+              @click="activeTab ='products'"
+              :class="[activeTab ==='products' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-white dark:hover:bg-slate-700']"
+              class="w-32 sm:w-40 py-2 px-3 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-lg transition-all cursor-pointer text-center"
+            >
+              Kelola Produk
+            </button>
+            <button 
+              @click="activeTab ='history'"
+              :class="[activeTab ==='history' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-white dark:hover:bg-slate-700']"
+              class="w-32 sm:w-40 py-2 px-3 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-lg transition-all cursor-pointer text-center"
+            >
+              Riwayat
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- Tab Content -->
-      <div class="transition-all duration-300">
+        <!-- Tab Content -->
+        <div class="transition-all duration-300">
         <!-- Tab: Kelola Produk -->
         <div v-if="activeTab ==='products'" class="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
           <!-- Filter Section (Synced) -->
-          <div class="bg-white dark:bg-slate-900 p-3 md:p-2.5 rounded-md border border-slate-200 dark:border-white/5 shadow-sm">
-            <div class="flex items-center gap-2.5">
-              <div class="relative w-full md:w-64">
+          <div class="bg-white dark:bg-slate-900 p-3 md:p-2 rounded-md border border-slate-200 dark:border-white/5 shadow-sm">
+            <div class="flex items-center gap-2.5 w-full shrink-0">
+              <div class="relative w-full">
                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -297,10 +298,10 @@ const showMobileFilters = ref(false);
         <!-- Tab: Riwayat Perubahan -->
         <div v-if="activeTab ==='history'" class="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
           <!-- Filter Section (Synced) -->
-          <div class="bg-white dark:bg-slate-900 p-3 md:p-2.5 rounded-md border border-slate-200 dark:border-white/5 shadow-sm">
-            <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-2.5">
+          <div class="bg-white dark:bg-slate-900 p-3 md:p-2 rounded-md border border-slate-200 dark:border-white/5 shadow-sm">
+            <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-2.5 w-full shrink-0">
               <!-- Search Field & Mobile Filter Toggle -->
-              <div class="flex items-center gap-2.5 w-full md:w-64">
+              <div class="flex items-center gap-2.5 w-full">
                 <div class="relative w-full">
                   <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -477,6 +478,7 @@ const showMobileFilters = ref(false);
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
 

@@ -16,33 +16,27 @@ class StockRecommendationController extends Controller
         $sma_periode = $setting && $setting->sma_periode ? (int) $setting->sma_periode : 7;
 
         $now = now();
-        $w1_start = $now->copy()->subDays($sma_periode);
-        $w2_start = $now->copy()->subDays($sma_periode * 2);
-        $w3_start = $now->copy()->subDays($sma_periode * 3);
+        $start_date = $now->copy()->subDays($sma_periode);
 
-        // Fetch sales data grouped by product for the last 3 weeks (Week 1, Week 2, Week 3)
+        // Fetch sales data grouped by product for the last $sma_periode days
         $salesData = DetailTransaksi::join('transaksi', 'detail_transaksi.transaksi_id', '=', 'transaksi.id')
             ->where('transaksi.status', 'selesai')
-            ->where('transaksi.tanggal', '>=', $w3_start)
+            ->where('transaksi.tanggal', '>=', $start_date)
             ->select('detail_transaksi.kode_produk')
-            ->selectRaw('SUM(CASE WHEN transaksi.tanggal >= ? THEN detail_transaksi.jumlah ELSE 0 END) as sales_w1', [$w1_start])
-            ->selectRaw('SUM(CASE WHEN transaksi.tanggal >= ? AND transaksi.tanggal < ? THEN detail_transaksi.jumlah ELSE 0 END) as sales_w2', [$w2_start, $w1_start])
-            ->selectRaw('SUM(CASE WHEN transaksi.tanggal >= ? AND transaksi.tanggal < ? THEN detail_transaksi.jumlah ELSE 0 END) as sales_w3', [$w3_start, $w2_start])
+            ->selectRaw('SUM(detail_transaksi.jumlah) as total_sales')
             ->groupBy('detail_transaksi.kode_produk')
             ->get()
             ->keyBy('kode_produk');
 
         $products = Produk::all();
 
-        $recommendations = $products->map(function ($product) use ($salesData) {
+        $recommendations = $products->map(function ($product) use ($salesData, $sma_periode) {
             $sales = $salesData->get($product->kode_produk);
             
-            $w1 = $sales ? (int)$sales->sales_w1 : 0;
-            $w2 = $sales ? (int)$sales->sales_w2 : 0;
-            $w3 = $sales ? (int)$sales->sales_w3 : 0;
+            $total_sales = $sales ? (int)$sales->total_sales : 0;
 
             // Single Moving Average (SMA) Forecast
-            $sma = (int) ceil(($w1 + $w2 + $w3) / 3);
+            $sma = (int) ceil($total_sales / max(1, $sma_periode));
 
             // Determine status based on current stock, minimum stock, and SMA forecast
             if ($product->stok <= $product->stok_minimal) {
@@ -65,12 +59,12 @@ class StockRecommendationController extends Controller
                 'stok' => $product->stok,
                 'stok_minimal' => $product->stok_minimal,
                 'harga' => $product->harga,
-                'sales_w3' => $w3,
-                'sales_w2' => $w2,
-                'sales_w1' => $w1,
+                'total_sales' => $total_sales,
                 'sma' => $sma,
                 'status' => $status,
                 'rekomendasi_tambah' => $rekomendasi_tambah,
+                'warna' => $product->warna,
+                'ukuran' => $product->ukuran,
             ];
         });
 

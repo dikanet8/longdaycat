@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="theme-color" content="#0f172a">
         <link rel="apple-touch-icon" href="/logo.svg">
         <link rel="manifest" href="/manifest.json">
@@ -26,17 +27,9 @@
 
             // Register Service Worker for PWA
             if ('serviceWorker' in navigator) {
-                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                        for (let registration of registrations) {
-                            registration.unregister();
-                        }
-                    });
-                } else {
-                    window.addEventListener('load', () => {
-                        navigator.serviceWorker.register('/sw.js');
-                    });
-                }
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js');
+                });
             }
         </script>
     </head>

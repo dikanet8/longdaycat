@@ -107,6 +107,21 @@ const executeCancel = () => {
   }
 };
 
+const showDetailModal = ref(false);
+const selectedTransaction = ref(null);
+
+const openDetailModal = (t) => {
+  selectedTransaction.value = t;
+  showDetailModal.value = true;
+};
+
+const closeDetailModal = () => {
+  showDetailModal.value = false;
+  setTimeout(() => {
+    selectedTransaction.value = null;
+  }, 300);
+};
+
 const printIframe = ref(null);
 const printTransaction = (id) => {
   if (printIframe.value) {
@@ -220,64 +235,80 @@ const printTransaction = (id) => {
               </tr>
             </thead>
             <tbody class="divide-y-2 divide-slate-100 dark:divide-white/5 text-slate-700 dark:text-slate-200">
-              <tr v-for="t in paginatedTransactions" :key="t.id" class="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors group">
-                <td class="px-8 py-5">
-                  <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">{{ formatDate(t.created_at) }}</span>
-                </td>
-                <td class="px-8 py-5">
-                  <div class="flex flex-col">
-                    <span class="font-black text-slate-900 dark:text-white text-sm tracking-tight uppercase">{{ t.kode_transaksi }}</span>
-                    <span class="text-[10px] text-slate-400 font-mono uppercase">{{ t.id }}</span>
-                  </div>
-                </td>
-                <td class="px-8 py-5">
-                  <div class="flex items-center gap-2.5">
-                    <div class="w-7 h-7 rounded-md bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-[10px] uppercase shadow-sm">
-                      {{ t.user?.name ? t.user.name.substring(0, 2) : 'SI' }}
+              <template v-if="paginatedTransactions.length > 0">
+                <tr v-for="t in paginatedTransactions" :key="t.id" class="hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors group">
+                  <td class="px-8 py-5">
+                    <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">{{ formatDate(t.created_at) }}</span>
+                  </td>
+                  <td class="px-8 py-5">
+                    <div class="flex flex-col">
+                      <span class="font-black text-slate-900 dark:text-white text-sm tracking-tight uppercase">{{ t.kode_transaksi }}</span>
+                      <span class="text-[10px] text-slate-400 font-mono uppercase">{{ t.id }}</span>
                     </div>
-                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 capitalize">{{ t.user?.name ||'Sistem' }}</span>
-                  </div>
-                </td>
-                <td class="px-8 py-5 text-center">
-                  <span v-if="t.pembayaran?.tanggal_pembayaran" class="text-xs text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">{{ formatDate(t.pembayaran.tanggal_pembayaran) }}</span>
-                  <span v-else class="text-[10px] px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-sm font-bold uppercase tracking-wider">Belum Ada</span>
-                </td>
-                <td class="px-8 py-5">
-                  <div class="flex flex-col gap-0.5">
-                    <p class="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-tighter">
-                      {{ t.details?.length || 0 }} ITEMS
-                    </p>
-                    <p class="text-xs text-slate-500 truncate max-w-[200px] capitalize">
-                      {{ t.details?.map(d => d.produk?.nama_produk).join(',') }}
-                    </p>
-                  </div>
-                </td>
-                <td class="px-8 py-5 text-center">
-                  <span class="text-sm font-black text-slate-900 dark:text-white tracking-tighter">{{ formatPrice(t.total_harga) }}</span>
-                </td>
-                <td class="px-8 py-5 text-center">
-                  <span :class="['px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border', getStatusBadge(t.status ||'Selesai')]">
-                    {{ t.status ||'Selesai' }}
-                  </span>
-                </td>
-                <td class="px-8 py-5 text-right">
-                  <div v-if="(t.status || 'selesai').toLowerCase() !== 'dibatalkan'" class="flex items-center justify-end gap-2">
-                    <button @click="confirmCancel(t.id, t.kode_transaksi)" class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Batalkan Transaksi">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </td>
+                  <td class="px-8 py-5">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-7 h-7 rounded-md bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-[10px] uppercase shadow-sm">
+                        {{ t.user?.name ? t.user.name.substring(0, 2) : 'SI' }}
+                      </div>
+                      <span class="text-xs font-bold text-slate-700 dark:text-slate-300 capitalize">{{ t.user?.name ||'Sistem' }}</span>
+                    </div>
+                  </td>
+                  <td class="px-8 py-5 text-center">
+                    <span v-if="t.pembayaran?.tanggal_pembayaran" class="text-xs text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">{{ formatDate(t.pembayaran.tanggal_pembayaran) }}</span>
+                    <span v-else class="text-[10px] px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-sm font-bold uppercase tracking-wider">Belum Ada</span>
+                  </td>
+                  <td class="px-8 py-5">
+                    <div class="flex flex-col gap-0.5">
+                      <p class="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-tighter">
+                        {{ t.details?.length || 0 }} ITEMS
+                      </p>
+                      <p class="text-xs text-slate-500 truncate max-w-[200px] capitalize">
+                        {{ t.details?.map(d => d.produk?.nama_produk).join(',') }}
+                      </p>
+                    </div>
+                  </td>
+                  <td class="px-8 py-5 text-center">
+                    <span class="text-sm font-black text-slate-900 dark:text-white tracking-tighter">{{ formatPrice(t.total_harga) }}</span>
+                  </td>
+                  <td class="px-8 py-5 text-center">
+                    <span :class="['px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border', getStatusBadge(t.status ||'Selesai')]">
+                      {{ t.status ||'Selesai' }}
+                    </span>
+                  </td>
+                  <td class="px-8 py-5 text-right">
+                    <div v-if="(t.status || 'selesai').toLowerCase() !== 'dibatalkan'" class="flex items-center justify-end gap-2">
+                      <button @click="confirmCancel(t.id, t.kode_transaksi)" class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Batalkan Transaksi">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                      <button @click="printTransaction(t.id)" class="p-2 text-slate-400 hover:text-emerald-500 transition-colors" title="Cetak Struk">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                      </button>
+                      <button @click="openDetailModal(t)" class="p-2 text-slate-400 hover:text-blue-500 transition-colors" title="Detail Transaksi">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+              <tr v-else>
+                <td colspan="8" class="px-8 py-20 text-center">
+                  <div class="flex flex-col items-center justify-center">
+                    <div class="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
+                      <svg class="w-10 h-10 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                       </svg>
-                    </button>
-                    <button @click="printTransaction(t.id)" class="p-2 text-slate-400 hover:text-emerald-500 transition-colors" title="Cetak Struk">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                      </svg>
-                    </button>
-                    <Link :href="route('payments.show', t.id)" class="p-2 text-slate-400 hover:text-blue-500 transition-colors" title="Lihat Struk">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    </Link>
+                    </div>
+                    <h3 class="text-base font-black text-slate-800 dark:text-white mb-1">Tidak Ada Transaksi Ditemukan</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Kata kunci atau filter yang Anda gunakan tidak cocok dengan transaksi manapun.</p>
+                    <button @click="resetFilters" class="mt-5 px-5 py-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-md text-xs font-bold transition-colors">Reset Filter Pencarian</button>
                   </div>
                 </td>
               </tr>
@@ -287,81 +318,69 @@ const printTransaction = (id) => {
 
         <!-- Mobile Card List -->
         <div class="md:hidden divide-y-2 divide-slate-100 dark:divide-white/5">
-          <div v-for="t in paginatedTransactions" :key="'mobile-'+t.id" class="p-5 space-y-4">
-            <div class="flex items-start justify-between gap-4">
-              <div class="min-w-0">
+          <template v-if="paginatedTransactions.length > 0">
+            <div v-for="t in paginatedTransactions" :key="'mobile-'+t.id" class="p-5 space-y-4">
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-black text-slate-900 dark:text-white text-base tracking-tight uppercase">{{ t.kode_transaksi }}</span>
+                    <span :class="['px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border whitespace-nowrap', getStatusBadge(t.status ||'Selesai')]">
+                      {{ t.status ||'Selesai' }}
+                    </span>
+                  </div>
+                  <p class="text-[10px] text-slate-500 font-medium mt-1">{{ formatDate(t.created_at) }}</p>
+                </div>
+                <span class="text-base font-black text-blue-600 dark:text-blue-400 whitespace-nowrap shrink-0">{{ formatPrice(t.total_harga) }}</span>
+              </div>
+
+              <div class="flex items-center justify-between gap-4 py-3 px-4 bg-slate-50 dark:bg-white/5 rounded-md border border-slate-100 dark:border-white/5">
                 <div class="flex items-center gap-2">
-                  <span class="font-black text-slate-900 dark:text-white text-base tracking-tight uppercase">{{ t.kode_transaksi }}</span>
-                  <span :class="['px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border whitespace-nowrap', getStatusBadge(t.status ||'Selesai')]">
-                    {{ t.status ||'Selesai' }}
-                  </span>
+                  <div class="w-8 h-8 rounded-full bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold text-xs">
+                    {{ t.user?.name.charAt(0) ||'S' }}
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400">Kasir: {{ t.user?.name ||'Sistem' }}</span>
+                    <span class="text-[9px] text-slate-500 uppercase font-black tracking-widest">{{ t.metode_bayar ||'Cash' }}</span>
+                  </div>
                 </div>
-                <p class="text-[10px] text-slate-500 font-medium mt-1">{{ formatDate(t.created_at) }}</p>
-              </div>
-              <span class="text-base font-black text-blue-600 dark:text-blue-400 whitespace-nowrap shrink-0">{{ formatPrice(t.total_harga) }}</span>
-            </div>
-
-            <div class="flex items-center justify-between gap-4 py-3 px-4 bg-slate-50 dark:bg-white/5 rounded-md border border-slate-100 dark:border-white/5">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold text-xs">
-                  {{ t.user?.name.charAt(0) ||'S' }}
-                </div>
-                <div class="flex flex-col">
-                  <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400">Kasir: {{ t.user?.name ||'Sistem' }}</span>
-                  <span class="text-[9px] text-slate-500 uppercase font-black tracking-widest">{{ t.metode_bayar ||'Cash' }}</span>
+                <div class="text-right">
+                  <p v-if="t.pembayaran?.tanggal_pembayaran" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mb-1">Bayar: {{ formatDate(t.pembayaran.tanggal_pembayaran) }}</p>
+                  <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{{ t.details?.length || 0 }} ITEMS</p>
                 </div>
               </div>
-              <div class="text-right">
-                <p v-if="t.pembayaran?.tanggal_pembayaran" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mb-1">Bayar: {{ formatDate(t.pembayaran.tanggal_pembayaran) }}</p>
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{{ t.details?.length || 0 }} ITEMS</p>
+
+              <div v-if="(t.status || 'selesai').toLowerCase() !== 'dibatalkan'" class="flex items-center gap-2 border-t border-slate-50 dark:border-white/5 pt-3 -mt-1">
+                <button @click="confirmCancel(t.id, t.kode_transaksi)" class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-md transition-colors active:scale-95" title="Batalkan">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Batal
+                </button>
+                <button @click="printTransaction(t.id)" class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 rounded-md transition-colors active:scale-95" title="Cetak">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  Cetak
+                </button>
+                <button @click="openDetailModal(t)" class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-md transition-colors active:scale-95" title="Detail">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Detail
+                </button>
               </div>
             </div>
-
-            <div v-if="(t.status || 'selesai').toLowerCase() !== 'dibatalkan'" class="flex items-center gap-2 border-t border-slate-50 dark:border-white/5 pt-3 -mt-1">
-              <button @click="confirmCancel(t.id, t.kode_transaksi)" class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 rounded-md transition-colors active:scale-95" title="Batalkan">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                Batal
-              </button>
-              <button @click="printTransaction(t.id)" class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 rounded-md transition-colors active:scale-95" title="Cetak">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                Cetak
-              </button>
-              <Link :href="route('payments.show', t.id)" class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-md transition-colors active:scale-95" title="Detail">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                Detail
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <!-- Empty State -->
-        <div v-if="filteredTransactionsAll.length === 0" class="px-8 py-32 text-center">
-          <div class="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500">
-            <div class="relative mb-6">
-              <div class="absolute inset-0 bg-blue-500/20 dark:bg-blue-500/10 rounded-full blur-xl animate-pulse"></div>
-              <div class="w-24 h-24 bg-gradient-to-tr from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-800/50 rounded-full flex items-center justify-center relative shadow-lg border border-white dark:border-white/5">
-                <svg class="w-10 h-10 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                </svg>
-              </div>
-            </div>
-            <h3 class="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-2">Belum Ada Transaksi</h3>
-            <p class="text-slate-500 dark:text-slate-400 text-sm font-medium max-w-sm mx-auto mb-6">
-              Tidak ada data transaksi yang ditemukan berdasarkan filter yang Anda terapkan.
-            </p>
-            <button @click="resetFilters" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 rounded-full text-xs font-black uppercase tracking-wider transition-all hover:scale-105 hover:shadow-lg shadow-slate-900/20">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </template>
+          <div v-else class="py-16 px-4 flex flex-col items-center justify-center text-center">
+            <div class="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-10 h-10 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
-              Reset Filter
-            </button>
+            </div>
+            <h3 class="text-base font-black text-slate-800 dark:text-white mb-1">Tidak Ada Transaksi</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Coba gunakan kata kunci pencarian yang lain.</p>
+            <button @click="resetFilters" class="mt-5 px-5 py-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-md text-xs font-bold transition-colors">Reset Pencarian</button>
           </div>
         </div>
         <!-- Pagination & Per Page -->
@@ -445,6 +464,105 @@ const printTransaction = (id) => {
                   </svg>
                   <span>{{ isCancelling ? 'Memproses...' : 'Batalkan' }}</span>
                 </button>
+              </div>
+            </div>
+          </Transition>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Detail Modal -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="ease-out duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="ease-in duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div v-if="showDetailModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-slate-900/50">
+          <Transition
+            enter-active-class="ease-out duration-300"
+            enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+            leave-active-class="ease-in duration-200"
+            leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+            leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          >
+            <div v-if="showDetailModal" class="relative bg-white dark:bg-slate-900 rounded-md shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+              <!-- Header -->
+              <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white uppercase">{{ selectedTransaction?.kode_transaksi }}</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ formatDate(selectedTransaction?.created_at) }}</p>
+                  </div>
+                </div>
+                <button type="button" @click="closeDetailModal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Body -->
+              <div class="p-6 overflow-y-auto">
+                <div class="space-y-4">
+                  <!-- Meta -->
+                  <div class="flex justify-between text-xs border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <div class="text-slate-500 dark:text-slate-400">Kasir: <span class="font-bold text-slate-900 dark:text-white">{{ selectedTransaction?.user?.name || 'Sistem' }}</span></div>
+                    <div class="text-slate-500 dark:text-slate-400">Metode: <span class="font-bold text-slate-900 dark:text-white uppercase">{{ selectedTransaction?.metode_bayar }}</span></div>
+                  </div>
+                  <!-- Items -->
+                  <div class="space-y-3">
+                    <div v-for="item in selectedTransaction?.details" :key="item.id" class="flex justify-between text-sm">
+                      <div>
+                        <div class="font-bold text-slate-900 dark:text-white capitalize">{{ item.produk?.nama_produk }}</div>
+                        <div class="text-xs text-slate-500">{{ item.jumlah }} x {{ formatPrice(item.harga_satuan) }}</div>
+                      </div>
+                      <div class="font-bold text-slate-900 dark:text-white">{{ formatPrice(item.subtotal) }}</div>
+                    </div>
+                  </div>
+                  
+                  <div class="border-t border-slate-100 dark:border-slate-800 pt-3 space-y-2 text-sm">
+                    <div class="flex justify-between">
+                      <span class="text-slate-500 dark:text-slate-400">Subtotal</span>
+                      <span class="font-bold text-slate-900 dark:text-white">{{ formatPrice(selectedTransaction?.subtotal || selectedTransaction?.total_harga) }}</span>
+                    </div>
+                    <div v-if="selectedTransaction?.diskon > 0" class="flex justify-between">
+                      <span class="text-slate-500 dark:text-slate-400">Diskon</span>
+                      <span class="font-bold text-red-500">-{{ formatPrice(selectedTransaction?.diskon) }}</span>
+                    </div>
+                    <div class="flex justify-between pt-2 border-t border-slate-100 dark:border-slate-800 font-black text-lg">
+                      <span class="text-slate-900 dark:text-white">Total</span>
+                      <span class="text-blue-600 dark:text-blue-400">{{ formatPrice(selectedTransaction?.total_harga) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Footer -->
+              <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
+                <span :class="['px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border', getStatusBadge(selectedTransaction?.status ||'Selesai')]">
+                  {{ selectedTransaction?.status ||'Selesai' }}
+                </span>
+                <div class="flex gap-2">
+                  <button @click="printTransaction(selectedTransaction?.id)" class="px-4 py-2 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-md transition-colors flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Cetak
+                  </button>
+                  <button @click="closeDetailModal" class="px-4 py-2 text-sm font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                    Tutup
+                  </button>
+                </div>
               </div>
             </div>
           </Transition>

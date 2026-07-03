@@ -122,6 +122,8 @@ class ReportsController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $setting = \App\Models\Setting::first();
+
         return Inertia::render('Reports/Sales', [
             'all_transactions' => $transactions,
             'filters' => [
@@ -130,7 +132,8 @@ class ReportsController extends Controller
                 'month' => date('n'),
                 'year' => date('Y'),
                 'per_page' => 10
-            ]
+            ],
+            'setting' => $setting
         ]);
     }
 }

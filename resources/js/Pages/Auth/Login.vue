@@ -19,69 +19,18 @@ const submit = () => {
   <Head title="Login" />
 
   <div class="min-h-screen bg-slate-100 flex font-sans relative overflow-hidden">
-    <!-- Left Side: Text Details (Full height, light gray background) -->
-    <div class="hidden md:flex md:w-1/2 bg-slate-50 border-r border-slate-200 flex-col justify-between p-16 h-screen">
-      <!-- Brand -->
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-          <span class="text-white font-bold italic text-2xl">L</span>
+    <!-- Left Side: Brand Presentation (Full height) -->
+    <div class="hidden md:flex md:w-1/2 bg-gradient-to-br from-slate-50 to-blue-50/50 border-r border-slate-200 flex-col items-center justify-center p-16 h-screen relative">
+      <!-- Brand Centered -->
+      <div class="flex flex-col items-center gap-8 animate-fade-in-up">
+        <div class="p-8 bg-white rounded-[2rem] shadow-2xl shadow-blue-900/5 border border-white/60 backdrop-blur-xl">
+          <img src="/logo.png" alt="Logo" class="w-48 h-48 md:w-56 md:h-56 object-contain drop-shadow-sm transition-transform hover:scale-105 duration-500" />
         </div>
-        <span class="font-extrabold text-2xl tracking-tight text-slate-900">Longdaycat.Co</span>
-      </div>
-
-      <!-- Features & Text Content -->
-      <div class="space-y-8 my-auto max-w-lg">
-        <div class="space-y-4">
-          <h2 class="text-4xl font-black text-slate-900 leading-tight tracking-tight">
-            Kelola Bisnis Fashion Anda dengan Lebih Cerdik.
-          </h2>
-          <p class="text-slate-600 text-base leading-relaxed font-semibold">
-            Sistem kasir (POS) dan manajemen inventaris modern yang dirancang khusus untuk mempermudah bisnis clothing line, butik, dan retail fashion Anda.
-          </p>
-        </div>
-
-        <!-- Feature list -->
-        <div class="space-y-4 pt-4">
-          <div class="flex items-start gap-4">
-            <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
-              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div>
-              <h4 class="text-sm font-bold text-slate-900">Kasir Point of Sales (POS) Modern</h4>
-              <p class="text-xs text-slate-500 font-medium">Transaksi penjualan cepat, dukung pencarian ukuran/warna pakaian, cetak struk, dan riwayat pembayaran.</p>
-            </div>
-          </div>
-
-          <div class="flex items-start gap-4">
-            <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
-              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div>
-              <h4 class="text-sm font-bold text-slate-900">Manajemen Stok & Rekomendasi Pintar</h4>
-              <p class="text-xs text-slate-500 font-medium">Pemantauan stok pakaian/aksesoris menipis dan sistem rekomendasi restok berdasarkan analisis berkala.</p>
-            </div>
-          </div>
-
-          <div class="flex items-start gap-4">
-            <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
-              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div>
-              <h4 class="text-sm font-bold text-slate-900">Laporan Penjualan Terperinci</h4>
-              <p class="text-xs text-slate-500 font-medium">Analisis keuntungan bulanan, produk fashion terlaris, serta grafik transaksi interaktif.</p>
-            </div>
-          </div>
-        </div>
+        <span class="font-black text-4xl tracking-tight text-slate-900 uppercase">Longdaycat.Co</span>
       </div>
 
       <!-- Footer info -->
-      <p class="text-xs text-slate-400 font-medium">
+      <p class="absolute bottom-8 text-xs text-slate-400 font-bold tracking-wide">
         &copy; 2026 Longdaycat.Co. Hak Cipta Dilindungi.
       </p>
     </div>
@@ -92,9 +41,7 @@ const submit = () => {
         <div class="mb-10">
           <!-- Mobile Brand Logo (Visible on mobile only) -->
           <div class="flex items-center gap-2 mb-8 md:hidden">
-            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span class="text-white font-bold italic text-lg">L</span>
-            </div>
+            <img src="/logo.png" alt="Logo" class="w-8 h-8 object-contain" />
             <span class="font-black text-xl text-slate-900 tracking-tight">Longdaycat.Co</span>
           </div>
           
